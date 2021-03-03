@@ -152,3 +152,65 @@ for (let line = 0; line < data.length; line++) {
 }
 
 console.table(individualData);
+
+var familyData = [];
+
+var familyDetails = {
+  ID: "",
+  Married: "",
+  Divorced: "NA",
+  HusbandId: "",
+  HusbandName: "",
+  WifeId: "",
+  WifeName: "",
+  Children: [],
+};
+
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+
+  if (lineData[2] === "FAM") {
+    familyDetails.ID = lineData[1].replace(/[@]/g, "");
+
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+
+      if (familyLineData[1] === "MARR") {
+        familyDetails.Married = data[counter + 1]
+          .split(" ")
+          .slice(2, data[counter + 1].length)
+          .join(" ");
+      } else if (familyLineData[1] === "HUSB") {
+        familyDetails.HusbandId = familyLineData[2].replace(/[@]/g, "");
+      } else if (familyLineData[1] === "WIFE") {
+        familyDetails.WifeId = familyLineData[2].replace(/[@]/g, "");
+      } else if (familyLineData[1] === "CHIL") {
+        familyDetails.Children.push(familyLineData[2].replace(/[@]/g, ""));
+      } else if (familyLineData[2] === "FAM") {
+        break;
+      }
+    }
+
+    for (let indiData = 0; indiData < individualData.length; indiData++) {
+      if (individualData[indiData].ID === familyDetails.HusbandId) {
+        familyDetails.HusbandName = individualData[indiData].Name;
+      }
+      if (individualData[indiData].ID === familyDetails.WifeId) {
+        familyDetails.WifeName = individualData[indiData].Name;
+      }
+    }
+
+    familyData.push(familyDetails);
+    var familyDetails = {
+      ID: "",
+      Married: "",
+      Divorced: "NA",
+      HusbandId: "",
+      HusbandName: "",
+      WifeId: "",
+      WifeName: "",
+      Children: [],
+    };
+  }
+}
+console.table(familyData);
