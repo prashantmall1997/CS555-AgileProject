@@ -1,6 +1,6 @@
 var fs = require("fs");
 var data = [];
-var text = fs.readFileSync("./familyTreeFinal.ged", "utf-8");
+var text = fs.readFileSync("./gedcomTestData.ged", "utf-8");
 data = text.match(/[^\r\n]+/g);
 const tags = {
   0: ["INDI", "FAM", "HEAD", "TRLR", "NOTE"],
