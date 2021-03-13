@@ -76,8 +76,26 @@ data = text.match(/[^\r\n]+/g);
 //   finalData = [];
 // }
 
-var individualData = [];
+console.clear();
 
+//Function to compare two dates
+function dateChecker(date1, date2 = new Date()) {
+  var date1 = new Date(Date.parse(date1));
+  var date2 = new Date(Date.parse(date2));
+  var ageTime = date2.getTime() - date1.getTime();
+
+  if (ageTime < 0) {
+    return false; //date2 is before date1
+  } else {
+    return true;
+  }
+}
+
+//Errors Array to store all error in gedcom file
+var errors = [];
+
+//Individual Table
+var individualData = [];
 var individualDetails = {
   ID: "",
   Name: "",
@@ -110,12 +128,24 @@ for (let line = 0; line < data.length; line++) {
           .split(" ")
           .slice(2, data[counter + 1].length)
           .join(" ");
+
+        if (!dateChecker(individualDetails.Birthday)) {
+          errors.push(
+            `ERROR: INDIVIDUAL: US01: ${individualDetails.ID}: Birthday ${individualDetails.Birthday} occurs in the future.`
+          );
+        }
       } else if (nameLineData[1] === "DEAT") {
         individualDetails.Alive = false;
         individualDetails.Death = data[counter + 1]
           .split(" ")
           .slice(2, data[counter + 1].length)
           .join(" ");
+
+        if (!dateChecker(individualDetails.Death)) {
+          errors.push(
+            `ERROR: INDIVIDUAL: US01: ${individualDetails.ID}: Death ${individualDetails.Death} occurs in the future.`
+          );
+        }
       } else if (nameLineData[1] === "FAMC") {
         individualDetails.Child = nameLineData[2].replace(/[@]/g, "");
       } else if (nameLineData[1] === "FAMS") {
@@ -150,5 +180,112 @@ for (let line = 0; line < data.length; line++) {
     };
   }
 }
-
+console.log("People");
 console.table(individualData);
+
+//Family Table
+var familyData = [];
+var familyDetails = {
+  ID: "",
+  Married: "",
+  Divorced: "NA",
+  HusbandId: "",
+  HusbandName: "",
+  WifeId: "",
+  WifeName: "",
+  Children: [],
+};
+
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+
+  if (lineData[2] === "FAM") {
+    familyDetails.ID = lineData[1].replace(/[@]/g, "");
+
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+
+      if (familyLineData[1] === "MARR") {
+        familyDetails.Married = data[counter + 1]
+          .split(" ")
+          .slice(2, data[counter + 1].length)
+          .join(" ");
+
+        if (!dateChecker(familyDetails.Married)) {
+          errors.push(
+            `ERROR: INDIVIDUAL: US01: ${familyDetails.ID}: Marriage ${familyDetails.Married} occurs in the future.`
+          );
+        }
+      } else if (familyLineData[1] === "HUSB") {
+        familyDetails.HusbandId = familyLineData[2].replace(/[@]/g, "");
+        for (let indiData = 0; indiData < individualData.length; indiData++) {
+          if (individualData[indiData].ID === familyDetails.HusbandId) {
+            husbandBirthDate = individualData[indiData].Birthday;
+            break;
+          }
+        }
+        if (!dateChecker(husbandBirthDate, familyDetails.Married)) {
+          errors.push(
+            `ERROR: FAMILY: ${familyDetails.ID}: US02: Husband's birth date ${husbandBirthDate} is after marriage date ${familyDetails.Married}.`
+          );
+        }
+      } else if (familyLineData[1] === "WIFE") {
+        familyDetails.WifeId = familyLineData[2].replace(/[@]/g, "");
+        for (let indiData = 0; indiData < individualData.length; indiData++) {
+          if (individualData[indiData].ID === familyDetails.WifeId) {
+            wifeBirthDate = individualData[indiData].Birthday;
+            break;
+          }
+        }
+        if (!dateChecker(wifeBirthDate, familyDetails.Married)) {
+          errors.push(
+            `ERROR: FAMILY: ${familyDetails.ID}: US02: Wife's birth date ${wifeBirthDate} is after marriage date ${familyDetails.Married}.`
+          );
+        }
+      } else if (familyLineData[1] === "CHIL") {
+        familyDetails.Children.push(familyLineData[2].replace(/[@]/g, ""));
+      } else if (familyLineData[1] === "DIV") {
+        familyDetails.Divorced = data[counter + 1]
+          .split(" ")
+          .slice(2, data[counter + 1].length)
+          .join(" ");
+
+        if (!dateChecker(familyDetails.Divorced)) {
+          errors.push(
+            `ERROR: FAMILY: US01: ${familyDetails.ID}: US01: Divorce ${familyDetails.Divorced} occurs in the future.`
+          );
+        }
+      } else if (familyLineData[2] === "FAM") {
+        break;
+      }
+    }
+
+    for (let indiData = 0; indiData < individualData.length; indiData++) {
+      if (individualData[indiData].ID === familyDetails.HusbandId) {
+        familyDetails.HusbandName = individualData[indiData].Name;
+      }
+      if (individualData[indiData].ID === familyDetails.WifeId) {
+        familyDetails.WifeName = individualData[indiData].Name;
+      }
+    }
+
+    familyData.push(familyDetails);
+    var familyDetails = {
+      ID: "",
+      Married: "",
+      Divorced: "NA",
+      HusbandId: "",
+      HusbandName: "",
+      WifeId: "",
+      WifeName: "",
+      Children: [],
+    };
+  }
+}
+console.log("Families");
+console.table(familyData);
+
+//Printing errors in GEDCOM file
+for (error in errors) {
+  console.log(errors[error]);
+}
