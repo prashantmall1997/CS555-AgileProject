@@ -183,8 +183,13 @@ for (let line = 0; line < data.length; line++) {
 console.log("People");
 console.table(individualData);
 
+<<<<<<< HEAD
+var familyData = [];
+
+=======
 //Family Table
 var familyData = [];
+>>>>>>> prashant.mall_development
 var familyDetails = {
   ID: "",
   Married: "",
@@ -210,6 +215,14 @@ for (let line = 0; line < data.length; line++) {
           .split(" ")
           .slice(2, data[counter + 1].length)
           .join(" ");
+<<<<<<< HEAD
+      } else if (familyLineData[1] === "HUSB") {
+        familyDetails.HusbandId = familyLineData[2].replace(/[@]/g, "");
+      } else if (familyLineData[1] === "WIFE") {
+        familyDetails.WifeId = familyLineData[2].replace(/[@]/g, "");
+      } else if (familyLineData[1] === "CHIL") {
+        familyDetails.Children.push(familyLineData[2].replace(/[@]/g, ""));
+=======
 
         if (!dateChecker(familyDetails.Married)) {
           errors.push(
@@ -255,6 +268,7 @@ for (let line = 0; line < data.length; line++) {
             `ERROR: FAMILY: US01: ${familyDetails.ID}: US01: Divorce ${familyDetails.Divorced} occurs in the future.`
           );
         }
+>>>>>>> prashant.mall_development
       } else if (familyLineData[2] === "FAM") {
         break;
       }
@@ -282,6 +296,9 @@ for (let line = 0; line < data.length; line++) {
     };
   }
 }
+<<<<<<< HEAD
+console.table(familyData);
+=======
 console.log("Families");
 console.table(familyData);
 
@@ -289,3 +306,4 @@ console.table(familyData);
 for (error in errors) {
   console.log(errors[error]);
 }
+>>>>>>> prashant.mall_development
