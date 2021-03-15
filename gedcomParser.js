@@ -301,6 +301,94 @@ for (let line = 0; line < data.length; line++) {
 console.log("Families");
 console.table(familyData);
 
+//US05 -	Marriage before death	- Marriage should occur before death of either spouse
+let familyDataElement, indiDataElement;
+for (
+  familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  marriageDate = new Date(Date.parse(familyData[familyDataElement].Married));
+
+  for (
+    indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    if (
+      individualData[indiDataElement].ID ==
+        familyData[familyDataElement].HusbandId &&
+      individualData[indiDataElement].Death != "NA"
+    ) {
+      if (!dateChecker(marriageDate, individualData[indiDataElement].Death)) {
+        errors.push(
+          `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after husband's (${familyData[familyDataElement].HusbandId}) death on ${individualData[indiDataElement].Death}`
+        );
+      }
+    }
+
+    if (
+      individualData[indiDataElement].ID ==
+        familyData[familyDataElement].WifeId &&
+      individualData[indiDataElement].Death != "NA"
+    ) {
+      if (!dateChecker(marriageDate, individualData[indiDataElement].Death)) {
+        errors.push(
+          `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
+        );
+      }
+    }
+  }
+}
+
+//US06	Divorce before death	Divorce can only occur before death of both spouses
+for (
+  familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  if (familyData[familyDataElement].Divorced != "NA") {
+    for (
+      indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].HusbandId &&
+        individualData[indiDataElement].Death != "NA"
+      ) {
+        if (
+          !dateChecker(
+            familyData[familyDataElement].Divorced,
+            individualData[indiDataElement].Death
+          )
+        ) {
+          errors.push(
+            `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after husband's (${familyData[familyDataElement].HusbandId}) death on ${individualData[indiDataElement].Death}`
+          );
+        }
+      }
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].WifeId &&
+        individualData[indiDataElement].Death != "NA"
+      ) {
+        if (
+          !dateChecker(
+            familyData[familyDataElement].Divorced,
+            individualData[indiDataElement].Death
+          )
+        ) {
+          errors.push(
+            `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
+          );
+        }
+      }
+    }
+  }
+}
+
 //Printing errors in GEDCOM file
 for (error in errors) {
   console.log(errors[error]);
