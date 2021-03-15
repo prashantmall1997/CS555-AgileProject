@@ -146,6 +146,11 @@ for (let line = 0; line < data.length; line++) {
             `ERROR: INDIVIDUAL: US01: ${individualDetails.ID}: Death ${individualDetails.Death} occurs in the future.`
           );
         }
+        if (!dateChecker(individualDetails.Birthday, individualDetails.Death)) {
+          errors.push(
+            `ERROR: INDIVIDUAL: ${individualDetails.ID}: US03: Birth ${individualDetails.Birthday} occurs after death ${individualDetails.Death}`
+          );
+        }
       } else if (nameLineData[1] === "FAMC") {
         individualDetails.Child = nameLineData[2].replace(/[@]/g, "");
       } else if (nameLineData[1] === "FAMS") {
@@ -253,6 +258,17 @@ for (let line = 0; line < data.length; line++) {
         if (!dateChecker(familyDetails.Divorced)) {
           errors.push(
             `ERROR: FAMILY: US01: ${familyDetails.ID}: US01: Divorce ${familyDetails.Divorced} occurs in the future.`
+          );
+        }
+        if (!familyDetails.Married) {
+          errors.push(
+            `ERROR: FAMILY: US04: ${familyDetails.ID}: Divorce ${familyDetails.Divorced} cannot occur without marriage.`
+          );
+        }
+
+        if (!dateChecker(familyDetails.Married, familyDetails.Divorced)) {
+          errors.push(
+            `ERROR: FAMILY: US04: ${familyDetails.ID}: Divorce ${familyDetails.Divorced} occurs before marriage in ${familyDetails.Married}.`
           );
         }
       } else if (familyLineData[2] === "FAM") {
