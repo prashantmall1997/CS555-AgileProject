@@ -168,6 +168,11 @@ for (let line = 0; line < data.length; line++) {
             `ERROR: INDIVIDUAL: US01: ${individualDetails.ID}: Death ${individualDetails.Death} occurs in the future.`
           );
         }
+        if (!dateChecker(individualDetails.Birthday, individualDetails.Death)) {
+          errors.push(
+            `ERROR: INDIVIDUAL: ${individualDetails.ID}: US03: Birth ${individualDetails.Birthday} occurs after death ${individualDetails.Death}`
+          );
+        }
       } else if (nameLineData[1] === "FAMC") {
         individualDetails.Child = nameLineData[2].replace(/[@]/g, "");
       } else if (nameLineData[1] === "FAMS") {
@@ -277,6 +282,17 @@ for (let line = 0; line < data.length; line++) {
             `ERROR: FAMILY: US01: ${familyDetails.ID}: US01: Divorce ${familyDetails.Divorced} occurs in the future.`
           );
         }
+        if (!familyDetails.Married) {
+          errors.push(
+            `ERROR: FAMILY: US04: ${familyDetails.ID}: Divorce ${familyDetails.Divorced} cannot occur without marriage.`
+          );
+        }
+
+        if (!dateChecker(familyDetails.Married, familyDetails.Divorced)) {
+          errors.push(
+            `ERROR: FAMILY: US04: ${familyDetails.ID}: Divorce ${familyDetails.Divorced} occurs before marriage in ${familyDetails.Married}.`
+          );
+        }
       } else if (familyLineData[2] === "FAM") {
         break;
       }
@@ -307,6 +323,7 @@ for (let line = 0; line < data.length; line++) {
 console.log("Families");
 console.table(familyData);
 
+
 //US07 - Less then 150 years old	- Death should be less than 150 years after birth for dead people, and current date should be less than 150 years after birth for all living people
 for (
   indiDataElement = 0;
@@ -331,16 +348,59 @@ for (
       errors.push(
         `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old at death - Birth ${individualData[indiDataElement].Birthday} : Death ${individualData[indiDataElement].Death}`
       );
-    }
-  }
-}
 
-//US08	Birth before marriage of parents	Children should be born after marriage of parents (and not more than 9 months after their divorce)
+//US05 -	Marriage before death	- Marriage should occur before death of either spouse
+let familyDataElement, indiDataElement;
 for (
   familyDataElement = 0;
   familyDataElement < familyData.length;
   familyDataElement++
 ) {
+  marriageDate = new Date(Date.parse(familyData[familyDataElement].Married));
+
+  for (
+    indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    if (
+      individualData[indiDataElement].ID ==
+        familyData[familyDataElement].HusbandId &&
+      individualData[indiDataElement].Death != "NA"
+    ) {
+      if (!dateChecker(marriageDate, individualData[indiDataElement].Death)) {
+        errors.push(
+          `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after husband's (${familyData[familyDataElement].HusbandId}) death on ${individualData[indiDataElement].Death}`
+        );
+      }
+    }
+
+    if (
+      individualData[indiDataElement].ID ==
+        familyData[familyDataElement].WifeId &&
+      individualData[indiDataElement].Death != "NA"
+    ) {
+      if (!dateChecker(marriageDate, individualData[indiDataElement].Death)) {
+        errors.push(
+          `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
+        );
+      }
+
+    }
+  }
+}
+
+
+//US08	Birth before marriage of parents	Children should be born after marriage of parents (and not more than 9 months after their divorce)
+
+//US06	Divorce before death	Divorce can only occur before death of both spouses
+
+for (
+  familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+
   if (familyData[familyDataElement].Children.length != 0) {
     for (
       childrenDataElement = 0;
@@ -377,6 +437,44 @@ for (
               );
             }
           }
+
+  if (familyData[familyDataElement].Divorced != "NA") {
+    for (
+      indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].HusbandId &&
+        individualData[indiDataElement].Death != "NA"
+      ) {
+        if (
+          !dateChecker(
+            familyData[familyDataElement].Divorced,
+            individualData[indiDataElement].Death
+          )
+        ) {
+          errors.push(
+            `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after husband's (${familyData[familyDataElement].HusbandId}) death on ${individualData[indiDataElement].Death}`
+          );
+        }
+      }
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].WifeId &&
+        individualData[indiDataElement].Death != "NA"
+      ) {
+        if (
+          !dateChecker(
+            familyData[familyDataElement].Divorced,
+            individualData[indiDataElement].Death
+          )
+        ) {
+          errors.push(
+            `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
+          );
+
         }
       }
     }
