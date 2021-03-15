@@ -323,32 +323,6 @@ for (let line = 0; line < data.length; line++) {
 console.log("Families");
 console.table(familyData);
 
-
-//US07 - Less then 150 years old	- Death should be less than 150 years after birth for dead people, and current date should be less than 150 years after birth for all living people
-for (
-  indiDataElement = 0;
-  indiDataElement < individualData.length;
-  indiDataElement++
-) {
-  if (individualData[indiDataElement].Alive == true) {
-    let age = calculateAge(individualData[indiDataElement].Birthday);
-
-    if (age > 150) {
-      errors.push(
-        `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old - Birth ${individualData[indiDataElement].Birthday}`
-      );
-    }
-  } else {
-    let age = calculateAge(
-      individualData[indiDataElement].Birthday,
-      individualData[indiDataElement].Death
-    );
-
-    if (age > 150) {
-      errors.push(
-        `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old at death - Birth ${individualData[indiDataElement].Birthday} : Death ${individualData[indiDataElement].Death}`
-      );
-
 //US05 -	Marriage before death	- Marriage should occur before death of either spouse
 let familyDataElement, indiDataElement;
 for (
@@ -391,52 +365,7 @@ for (
 }
 
 
-//US08	Birth before marriage of parents	Children should be born after marriage of parents (and not more than 9 months after their divorce)
-
 //US06	Divorce before death	Divorce can only occur before death of both spouses
-
-for (
-  familyDataElement = 0;
-  familyDataElement < familyData.length;
-  familyDataElement++
-) {
-
-  if (familyData[familyDataElement].Children.length != 0) {
-    for (
-      childrenDataElement = 0;
-      childrenDataElement < familyData[familyDataElement].Children.length;
-      childrenDataElement++
-    ) {
-      for (
-        indiDataElement = 0;
-        indiDataElement < individualData.length;
-        indiDataElement++
-      ) {
-        if (
-          familyData[familyDataElement].Children[childrenDataElement] ==
-          individualData[indiDataElement].ID
-        ) {
-          if (
-            dateChecker(
-              individualData[indiDataElement].Birthday,
-              familyData[familyDataElement].Married
-            )
-          ) {
-            errors.push(
-              `ANAMOLY: FAMILY: US08: ${familyData[familyDataElement].ID} Child ${individualData[indiDataElement].ID} born ${individualData[indiDataElement].Birthday} before marriage on ${familyData[familyDataElement].Married}`
-            );
-          } else if (familyData[familyDataElement].Divorced != "NA") {
-            let difference = calculateAge(
-              familyData[familyDataElement].Divorced,
-              individualData[indiDataElement].Birthday
-            );
-
-            if (difference >= 0.75) {
-              errors.push(
-                `ANAMOLY: FAMILY: US08: ${familyData[familyDataElement].ID} Child ${individualData[indiDataElement].ID} born ${individualData[indiDataElement].Birthday} after divorce on ${familyData[familyDataElement].Divorced}`
-              );
-            }
-          }
 
   if (familyData[familyDataElement].Divorced != "NA") {
     for (
@@ -480,6 +409,82 @@ for (
     }
   }
 }
+        
+//US07 - Less then 150 years old	- Death should be less than 150 years after birth for dead people, and current date should be less than 150 years after birth for all living people
+for (
+  indiDataElement = 0;
+  indiDataElement < individualData.length;
+  indiDataElement++
+) {
+  if (individualData[indiDataElement].Alive == true) {
+    let age = calculateAge(individualData[indiDataElement].Birthday);
+
+    if (age > 150) {
+      errors.push(
+        `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old - Birth ${individualData[indiDataElement].Birthday}`
+      );
+    }
+  } else {
+    let age = calculateAge(
+      individualData[indiDataElement].Birthday,
+      individualData[indiDataElement].Death
+    );
+
+    if (age > 150) {
+      errors.push(
+        `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old at death - Birth ${individualData[indiDataElement].Birthday} : Death ${individualData[indiDataElement].Death}`
+      );
+    }
+  }
+}
+
+//US08	Birth before marriage of parents	Children should be born after marriage of parents (and not more than 9 months after their divorce)
+for (
+  familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  if (familyData[familyDataElement].Children.length != 0) {
+    for (
+      childrenDataElement = 0;
+      childrenDataElement < familyData[familyDataElement].Children.length;
+      childrenDataElement++
+    ) {
+      for (
+        indiDataElement = 0;
+        indiDataElement < individualData.length;
+        indiDataElement++
+      ) {
+        if (
+          familyData[familyDataElement].Children[childrenDataElement] ==
+          individualData[indiDataElement].ID
+        ) {
+          if (
+            dateChecker(
+              individualData[indiDataElement].Birthday,
+              familyData[familyDataElement].Married
+            )
+          ) {
+            errors.push(
+              `ANAMOLY: FAMILY: US08: ${familyData[familyDataElement].ID} Child ${individualData[indiDataElement].ID} born ${individualData[indiDataElement].Birthday} before marriage on ${familyData[familyDataElement].Married}`
+            );
+          } else if (familyData[familyDataElement].Divorced != "NA") {
+            let difference = calculateAge(
+              familyData[familyDataElement].Divorced,
+              individualData[indiDataElement].Birthday
+            );
+
+            if (difference >= 0.75) {
+              errors.push(
+                `ANAMOLY: FAMILY: US08: ${familyData[familyDataElement].ID} Child ${individualData[indiDataElement].ID} born ${individualData[indiDataElement].Birthday} after divorce on ${familyData[familyDataElement].Divorced}`
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+} 
 
 //Printing errors in GEDCOM file
 for (error in errors) {
