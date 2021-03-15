@@ -359,14 +359,16 @@ for (
           `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
         );
       }
-
     }
   }
 }
 
-
 //US06	Divorce before death	Divorce can only occur before death of both spouses
-
+for (
+  familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
   if (familyData[familyDataElement].Divorced != "NA") {
     for (
       indiDataElement = 0;
@@ -403,13 +405,12 @@ for (
           errors.push(
             `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
           );
-
         }
       }
     }
   }
 }
-        
+
 //US07 - Less then 150 years old	- Death should be less than 150 years after birth for dead people, and current date should be less than 150 years after birth for all living people
 for (
   indiDataElement = 0;
@@ -484,7 +485,7 @@ for (
       }
     }
   }
-} 
+}
 
 //Printing errors in GEDCOM file
 for (error in errors) {
