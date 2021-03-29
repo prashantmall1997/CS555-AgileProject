@@ -414,7 +414,7 @@ for (
   }
 }
 
-//Marriage should not occur during marriage to another spouse
+//US11 Marriage should not occur during marriage to another spouse
 for (let line = 0; line < data.length; line++) {
   var lineData = data[line].split(" ");
 
@@ -496,6 +496,142 @@ for (let line = 0; line < data.length; line++) {
             }
           }
         }
+      }
+    }
+  }
+}
+
+//US12 Mother should be less than 60 years older than her children and father should be less than 80 years older than his children
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+  if (lineData[1] === "HUSB") {
+    var husband = lineData[2];
+    var wife = data[line + 1].split(" ")[2];
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+      if (familyLineData[2] === "FAM") {
+        break;
+      }
+
+      for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+        var lineData = data[lineLoop].split(" ");
+
+        if (lineData[1] === husband) {
+          for (
+            let counterLoop = lineLoop + 1;
+            counterLoop < data.length;
+            counterLoop++
+          ) {
+            var nameLineData = data[counterLoop].split(" ");
+
+            if (nameLineData[1] === "BIRT") {
+              husbandBirthday = data[counterLoop + 1]
+                .split(" ")
+                .slice(2, data[counterLoop + 1].length)
+                .join(" ");
+              break;
+            }
+          }
+        }
+      }
+
+      for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+        var lineData = data[lineLoop].split(" ");
+
+        if (lineData[1] === wife) {
+          for (
+            let counterLoop = lineLoop + 1;
+            counterLoop < data.length;
+            counterLoop++
+          ) {
+            var nameLineData = data[counterLoop].split(" ");
+
+            if (nameLineData[1] === "BIRT") {
+              wifeBirthday = data[counterLoop + 1]
+                .split(" ")
+                .slice(2, data[counterLoop + 1].length)
+                .join(" ");
+              break;
+            }
+          }
+        }
+      }
+
+      if (familyLineData[1] === "CHIL") {
+        var child = familyLineData[2];
+
+        for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+          var lineData = data[lineLoop].split(" ");
+
+          if (lineData[1] === child) {
+            for (
+              let counterLoop = lineLoop + 1;
+              counterLoop < data.length;
+              counterLoop++
+            ) {
+              var nameLineData = data[counterLoop].split(" ");
+
+              if (nameLineData[1] === "BIRT") {
+                childBirthday = data[counterLoop + 1]
+                  .split(" ")
+                  .slice(2, data[counterLoop + 1].length)
+                  .join(" ");
+                break;
+              }
+            }
+          }
+        }
+
+        var childDate = new Date(Date.parse(childBirthday));
+        var husbandDate = new Date(Date.parse(husbandBirthday));
+        var wifeDate = new Date(Date.parse(wifeBirthday));
+
+        var currDate = new Date();
+
+        var childAge = Math.floor(
+          (currDate.getTime() - childDate.getTime()) / 31557600000
+        );
+        var husbandAge = Math.floor(
+          (currDate.getTime() - husbandDate.getTime()) / 31557600000
+        );
+        var wifeAge = Math.floor(
+          (currDate.getTime() - wifeDate.getTime()) / 31557600000
+        );
+
+        var famOneIncrement;
+        if (data[line - 3].split(" ")[2] === "FAM") {
+          famOneIncrement = 3;
+        } else {
+          famOneIncrement = 5;
+        }
+
+        if (wifeAge - childAge >= 60) {
+          errors.push(
+            `ERROR: FAMILY: US12: ${data[line - famOneIncrement].split(" ")[1].replace(
+              /[@]/g,
+              ""
+            )}: Age of Mother ${wife.replace(
+              /[@]/g,
+              ""
+            )} should be less than 60 years older than her children.`
+          );
+        }
+
+        if (husbandAge - childAge >= 80) {
+          errors.push(
+            `ERROR: FAMILY: US12: ${data[line - famOneIncrement].split(" ")[1].replace(
+              /[@]/g,
+              ""
+            )}: Age of Father ${husband.replace(
+              /[@]/g,
+              ""
+            )} should be less than 80 years older than his children.`
+          );
+        }
+
+        console.log(
+          `Child ${child} age: ${childAge} of Father ${husband} Age: ${husbandAge} & Mother ${wife} Age: ${wifeAge}`
+        );
       }
     }
   }
