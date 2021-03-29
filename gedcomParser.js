@@ -414,6 +414,74 @@ for (
   }
 }
 
+//US09	Birth before death of parents	Child should be born before death of mother and before 9 months after death of father
+for (let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+
+  for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+      if (familyData[familyDataElement].HusbandId == individualData[indiDataElement].ID && !individualData[indiDataElement].Alive){  //finding husbandid and checking further if not alive
+        husbandDeathDate = new Date(Date.parse(individualData[indiDataElement].Death));
+        fatherDeathDate = individualData[indiDataElement].Death;
+        for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){   //iterating through each element in children array
+    
+          for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+
+            if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex]){
+                childBirthDay = new Date(Date.parse(individualData[indiDataElement].Birthday));
+                difference = calculateAge(childBirthDay,husbandDeathDate);  //calculating difference between child birthdate and father's death date
+                
+                if (difference < 0.75) {                                   //child should be born before 9 months from death of father
+                  errors.push(`ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of father (${familyData[familyDataElement].HusbandId}) on ${fatherDeathDate} `);
+                }
+            }
+          }
+        }
+      }
+      if (familyData[familyDataElement].WifeId == individualData[indiDataElement].ID && !individualData[indiDataElement].Alive){
+        wifeDeathDate = new Date(Date.parse(individualData[indiDataElement].Death));
+        motherDeathDate = individualData[indiDataElement].Death;
+        for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){   //iterating through each element in children array
+    
+          for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+
+            if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex]){
+                childBirthDay = new Date(Date.parse(individualData[indiDataElement].Birthday));
+                                        
+                if (!dateChecker(childBirthDay, wifeDeathDate)){    //if mother's death data is before child's birthdate condition is true and throws error
+                    errors.push(`ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of mother (${familyData[familyDataElement].WifeId}) on ${motherDeathDate}`);
+                }
+            }
+          }
+        }
+        
+      }
+  } 
+}
+
+//US10	-Marriage after 14	-Marriage should be at least 14 years after birth of both spouses (parents must be at least 14 years old)
+for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+  let marriageDate = new Date(Date.parse(familyData[familyDataElement].Married));
+  let husbandId = familyData[familyDataElement].HusbandId;
+  let wifeId = familyData[familyDataElement].WifeId;
+  //console.log(marriageDate);
+  for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+      if (individualData[indiDataElement].ID == husbandId){
+        husbandBirthday = individualData[indiDataElement].Birthday;
+      }
+      if (individualData[indiDataElement].ID == wifeId){
+        wifeBirthday = individualData[indiDataElement].Birthday;
+      }
+  }
+  let diffHusband = calculateAge(marriageDate, husbandBirthday);  //calculates the difference between the marriage date and husband birth date
+  let diffWife = calculateAge(marriageDate,wifeBirthday);           //calculates the difference between the marriage date and wife birth date
+  
+  if (diffHusband < 14 ){
+    errors.push(`ERROR: INDIVIDUAL: US10: ${husbandId}: married before the age of 14`);
+  }
+  if (diffWife < 14 ){
+    errors.push(`ERROR: INDIVIDUAL: US10: ${wifeId}: married before the age of 14`);
+  }
+}
+
 //US11 Marriage should not occur during marriage to another spouse
 for (let line = 0; line < data.length; line++) {
   var lineData = data[line].split(" ");
