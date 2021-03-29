@@ -3,79 +3,6 @@ var data = [];
 var text = fs.readFileSync("./gedcomTestData.ged", "utf-8");
 data = text.match(/[^\r\n]+/g);
 
-// //Assignmet 2
-// const tags = {
-//   0: ["INDI", "FAM", "HEAD", "TRLR", "NOTE"],
-//   1: [
-//     "NAME",
-//     "SEX",
-//     "BIRT",
-//     "DEAT",
-//     "FAMC",
-//     "FAMS",
-//     "MARR",
-//     "HUSB",
-//     "WIFE",
-//     "CHIL",
-//     "DIV",
-//   ],
-//   2: ["DATE"],
-// };
-
-// var finalData = [];
-
-// for (let line = 0; line < data.length; line++) {
-//   console.log(`--> ${data[line]}`);
-//   var lineData = data[line].split(" ");
-
-//   let level = lineData[0];
-//   let tag = "";
-//   if (lineData[2] === "INDI" || lineData[2] === "FAM") {
-//     tag = lineData[2];
-//   } else {
-//     tag = lineData[1];
-//   }
-
-//   var valid = tags[level].includes(tag) ? "Y" : "N";
-
-//   if (lineData[2] === "INDI" || lineData[2] === "FAM") {
-//     if (lineData[3] === "Y" || lineData[3] === "N") {
-//       lineData[3] = valid;
-//     } else {
-//       lineData.splice(3, 0, valid);
-
-//       var temp = lineData[1];
-//       lineData.splice(1, 1);
-//       lineData.splice(3, 0, temp);
-//     }
-//   } else {
-//     if (lineData[2] === "Y" || lineData[2] === "N") {
-//       lineData[2] = valid;
-//     } else {
-//       lineData.splice(2, 0, valid);
-//     }
-//   }
-
-//   for (let count = 0; count <= lineData.length; count++) {
-//     if (count === 2) {
-//       if (lineData.length === 3) {
-//         finalData.push(lineData[count]);
-//         break;
-//       }
-//       finalData.push(lineData[count]);
-//       arguments = lineData.slice(3, lineData.length).join(" ");
-//       finalData.push(arguments);
-
-//       break;
-//     } else {
-//       finalData.push(lineData[count]);
-//     }
-//   }
-
-//   console.log(`<-- ${finalData.join("|")}`);
-//   finalData = [];
-// }
-
 console.clear();
 
 //Function to compare two dates
@@ -482,6 +409,229 @@ for (
             }
           }
         }
+      }
+    }
+  }
+}
+
+//US11 Marriage should not occur during marriage to another spouse
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+
+  if (lineData[2] === "FAM") {
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+
+      if (familyLineData[1] === "MARR") {
+        marriageDate = data[counter + 1]
+          .split(" ")
+          .slice(2, data[counter + 1].length)
+          .join(" ");
+
+        for (
+          let marriageCounter = counter + 1;
+          marriageCounter < data.length;
+          marriageCounter++
+        ) {
+          var familyLineData = data[marriageCounter].split(" ");
+
+          if (familyLineData[1] === "MARR") {
+            compareMarriageDate = data[marriageCounter + 1]
+              .split(" ")
+              .slice(2, data[marriageCounter + 1].length)
+              .join(" ");
+
+            if (marriageDate === compareMarriageDate) {
+              var famOneIncrement;
+              var famTwoIncrement;
+              if (data[counter + 2].split(" ")[1] === "HUSB") {
+                famOneIncrement = 2;
+              } else {
+                famOneIncrement = 4;
+              }
+              if (data[marriageCounter + 2].split(" ")[1] === "HUSB") {
+                famTwoIncrement = 2;
+              } else {
+                famTwoIncrement = 4;
+              }
+
+              if (
+                data[counter + famOneIncrement].split(" ")[2] ===
+                data[marriageCounter + famTwoIncrement].split(" ")[2]
+              ) {
+                errors.push(
+                  `ANAMOLY: FAMILY: US11: ${data[marriageCounter - 1]
+                    .split(" ")[1]
+                    .replace(/[@]/g, "")}: Marriage of Husband ${data[
+                    marriageCounter + famTwoIncrement
+                  ]
+                    .split(" ")[2]
+                    .replace(
+                      /[@]/g,
+                      ""
+                    )} occurs with both the spouse on same day.`
+                );
+                counter = marriageCounter;
+                break;
+              }
+              if (
+                data[counter + famOneIncrement + 1].split(" ")[2] ===
+                data[marriageCounter + famTwoIncrement + 1].split(" ")[2]
+              ) {
+                errors.push(
+                  `ANAMOLY: FAMILY: US11: ${data[marriageCounter - 1]
+                    .split(" ")[1]
+                    .replace(/[@]/g, "")}: Marriage of Wife ${data[
+                    marriageCounter + famTwoIncrement + 1
+                  ]
+                    .split(" ")[2]
+                    .replace(
+                      /[@]/g,
+                      ""
+                    )} occurs with both the spouse on same day.`
+                );
+                counter = marriageCounter;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+//US12 Mother should be less than 60 years older than her children and father should be less than 80 years older than his children
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+  if (lineData[1] === "HUSB") {
+    var husband = lineData[2];
+    var wife = data[line + 1].split(" ")[2];
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+      if (familyLineData[2] === "FAM") {
+        break;
+      }
+
+      for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+        var lineData = data[lineLoop].split(" ");
+
+        if (lineData[1] === husband) {
+          for (
+            let counterLoop = lineLoop + 1;
+            counterLoop < data.length;
+            counterLoop++
+          ) {
+            var nameLineData = data[counterLoop].split(" ");
+
+            if (nameLineData[1] === "BIRT") {
+              husbandBirthday = data[counterLoop + 1]
+                .split(" ")
+                .slice(2, data[counterLoop + 1].length)
+                .join(" ");
+              break;
+            }
+          }
+        }
+      }
+
+      for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+        var lineData = data[lineLoop].split(" ");
+
+        if (lineData[1] === wife) {
+          for (
+            let counterLoop = lineLoop + 1;
+            counterLoop < data.length;
+            counterLoop++
+          ) {
+            var nameLineData = data[counterLoop].split(" ");
+
+            if (nameLineData[1] === "BIRT") {
+              wifeBirthday = data[counterLoop + 1]
+                .split(" ")
+                .slice(2, data[counterLoop + 1].length)
+                .join(" ");
+              break;
+            }
+          }
+        }
+      }
+
+      if (familyLineData[1] === "CHIL") {
+        var child = familyLineData[2];
+
+        for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+          var lineData = data[lineLoop].split(" ");
+
+          if (lineData[1] === child) {
+            for (
+              let counterLoop = lineLoop + 1;
+              counterLoop < data.length;
+              counterLoop++
+            ) {
+              var nameLineData = data[counterLoop].split(" ");
+
+              if (nameLineData[1] === "BIRT") {
+                childBirthday = data[counterLoop + 1]
+                  .split(" ")
+                  .slice(2, data[counterLoop + 1].length)
+                  .join(" ");
+                break;
+              }
+            }
+          }
+        }
+
+        var childDate = new Date(Date.parse(childBirthday));
+        var husbandDate = new Date(Date.parse(husbandBirthday));
+        var wifeDate = new Date(Date.parse(wifeBirthday));
+
+        var currDate = new Date();
+
+        var childAge = Math.floor(
+          (currDate.getTime() - childDate.getTime()) / 31557600000
+        );
+        var husbandAge = Math.floor(
+          (currDate.getTime() - husbandDate.getTime()) / 31557600000
+        );
+        var wifeAge = Math.floor(
+          (currDate.getTime() - wifeDate.getTime()) / 31557600000
+        );
+
+        var famOneIncrement;
+        if (data[line - 3].split(" ")[2] === "FAM") {
+          famOneIncrement = 3;
+        } else {
+          famOneIncrement = 5;
+        }
+
+        if (wifeAge - childAge >= 60) {
+          errors.push(
+            `ERROR: FAMILY: US12: ${data[line - famOneIncrement].split(" ")[1].replace(
+              /[@]/g,
+              ""
+            )}: Age of Mother ${wife.replace(
+              /[@]/g,
+              ""
+            )} should be less than 60 years older than her children.`
+          );
+        }
+
+        if (husbandAge - childAge >= 80) {
+          errors.push(
+            `ERROR: FAMILY: US12: ${data[line - famOneIncrement].split(" ")[1].replace(
+              /[@]/g,
+              ""
+            )}: Age of Father ${husband.replace(
+              /[@]/g,
+              ""
+            )} should be less than 80 years older than his children.`
+          );
+        }
+
+        console.log(
+          `Child ${child} age: ${childAge} of Father ${husband} Age: ${husbandAge} & Mother ${wife} Age: ${wifeAge}`
+        );
       }
     }
   }
