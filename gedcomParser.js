@@ -414,6 +414,93 @@ for (
   }
 }
 
+//Marriage should not occur during marriage to another spouse
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+
+  if (lineData[2] === "FAM") {
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+
+      if (familyLineData[1] === "MARR") {
+        marriageDate = data[counter + 1]
+          .split(" ")
+          .slice(2, data[counter + 1].length)
+          .join(" ");
+
+        for (
+          let marriageCounter = counter + 1;
+          marriageCounter < data.length;
+          marriageCounter++
+        ) {
+          var familyLineData = data[marriageCounter].split(" ");
+
+          if (familyLineData[1] === "MARR") {
+            compareMarriageDate = data[marriageCounter + 1]
+              .split(" ")
+              .slice(2, data[marriageCounter + 1].length)
+              .join(" ");
+
+            if (marriageDate === compareMarriageDate) {
+              var famOneIncrement;
+              var famTwoIncrement;
+              if (data[counter + 2].split(" ")[1] === "HUSB") {
+                famOneIncrement = 2;
+              } else {
+                famOneIncrement = 4;
+              }
+              if (data[marriageCounter + 2].split(" ")[1] === "HUSB") {
+                famTwoIncrement = 2;
+              } else {
+                famTwoIncrement = 4;
+              }
+
+              if (
+                data[counter + famOneIncrement].split(" ")[2] ===
+                data[marriageCounter + famTwoIncrement].split(" ")[2]
+              ) {
+                errors.push(
+                  `ANAMOLY: FAMILY: US11: ${data[marriageCounter - 1]
+                    .split(" ")[1]
+                    .replace(/[@]/g, "")}: Marriage of Husband ${data[
+                    marriageCounter + famTwoIncrement
+                  ]
+                    .split(" ")[2]
+                    .replace(
+                      /[@]/g,
+                      ""
+                    )} occurs with both the spouse on same day.`
+                );
+                counter = marriageCounter;
+                break;
+              }
+              if (
+                data[counter + famOneIncrement + 1].split(" ")[2] ===
+                data[marriageCounter + famTwoIncrement + 1].split(" ")[2]
+              ) {
+                errors.push(
+                  `ANAMOLY: FAMILY: US11: ${data[marriageCounter - 1]
+                    .split(" ")[1]
+                    .replace(/[@]/g, "")}: Marriage of Wife ${data[
+                    marriageCounter + famTwoIncrement + 1
+                  ]
+                    .split(" ")[2]
+                    .replace(
+                      /[@]/g,
+                      ""
+                    )} occurs with both the spouse on same day.`
+                );
+                counter = marriageCounter;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 //Printing errors in GEDCOM file
 for (error in errors) {
   console.log(errors[error]);
