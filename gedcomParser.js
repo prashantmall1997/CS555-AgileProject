@@ -704,8 +704,173 @@ for (let line = 0; line < data.length; line++) {
     }
   }
 }
+//US13 Birth dates of siblings should be more than 8 months apart or less than 2 days apart (twins may be born one day apart, e.g. 11:59 PM and 12:02 AM the following calendar day)
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+  if (lineData[2] === "FAM") {
+    var FID = lineData[1].replace(/[@]/g, "");
+
+    var children = [];
+
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+      if (familyLineData[2] === "FAM") {
+        break;
+      }
+
+      if (familyLineData[1] === "CHIL") {
+        var child = familyLineData[2];
+
+        for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+          var lineData = data[lineLoop].split(" ");
+
+          if (lineData[1] === child) {
+            for (
+              let counterLoop = lineLoop + 1;
+              counterLoop < data.length;
+              counterLoop++
+            ) {
+              var nameLineData = data[counterLoop].split(" ");
+
+              if (nameLineData[1] === "BIRT") {
+                childBirthday = data[counterLoop + 1]
+                  .split(" ")
+                  .slice(2, data[counterLoop + 1].length)
+                  .join(" ");
+                break;
+              }
+            }
+          }
+        }
+
+        var childDate = new Date(Date.parse(childBirthday));
+
+        children.push(childDate);
+      }
+    }
+  
+    for (childCount = 0; childCount < children.length; childCount++) {
+      for (
+        compareChild = childCount + 1;
+        compareChild < children.length;
+        compareChild++
+      ) {
+        if (
+          Math.floor(
+            (children[childCount] - children[compareChild]) / 86400000
+          ) <= 2 ||
+          Math.floor(
+            (children[childCount] - children[compareChild]) / 86400000 / 12
+          ) <= 8
+        ) {
+          errors.push(
+            `ERROR: FAMILY: US13: ${FID}: Birth of children should be more than 8 months apart or less than 2 days apart.`
+          );
+        }
+      }
+    }
+  }
+}
+//US14 No more than five siblings should be born at the same time
+for (let line = 0; line < data.length; line++) {
+  var lineData = data[line].split(" ");
+  if (lineData[2] === "FAM") {
+    var FID = lineData[1].replace(/[@]/g, "");
+
+    var children = [];
+
+    for (let counter = line + 1; counter < data.length; counter++) {
+      var familyLineData = data[counter].split(" ");
+      if (familyLineData[2] === "FAM") {
+        break;
+      }
+
+      if (familyLineData[1] === "CHIL") {
+        var child = familyLineData[2];
+
+        for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+          var lineData = data[lineLoop].split(" ");
+
+          if (lineData[1] === child) {
+            for (
+              let counterLoop = lineLoop + 1;
+              counterLoop < data.length;
+              counterLoop++
+            ) {
+              var nameLineData = data[counterLoop].split(" ");
+
+              if (nameLineData[1] === "BIRT") {
+                childBirthday = data[counterLoop + 1]
+                  .split(" ")
+                  .slice(2, data[counterLoop + 1].length)
+                  .join(" ");
+                break;
+              }
+            }
+          }
+        }
+
+        var childDate = new Date(Date.parse(childBirthday));
+
+        children.push(childDate);
+      }
+    }
+
+    for (childCount = 0; childCount < children.length; childCount++) {
+      var birthCount = 0;
+      birthCount++;
+      for (
+        compareChild = childCount + 1;
+        compareChild < children.length;
+        compareChild++
+      ) {
+        if (
+          Math.floor(
+            (children[childCount] - children[compareChild]) / 86400000
+          ) <= 2
+        ) {
+          birthCount++;
+        }
+      }
+      if (birthCount > 5) {
+        errors.push(
+          `ERROR: FAMILY: US14: ${FID}: No more than five siblings can be born at the same time.`
+        );
+      }
+    }
+  }
+}
+
+
+//US15  Fewer than 15 siblings  There should be fewer than 15 siblings in a family
+for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+  if (familyData[familyDataElement].Children.length > 15){
+    errors.push(`ERROR: FAMILY: US15: ${familyData[familyDataElement].ID}: More than 15 siblings in a family`);
+  }
+}
+
+//US16  Male last names All male members of a family should have the same last name
+for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+  nameArray = familyData[familyDataElement].HusbandName.split('/');
+  familyLastname = nameArray[1];
+  for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){
+
+    for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+
+      if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex] && individualData[indiDataElement].Gender == 'M'){
+          childNameArray = individualData[indiDataElement].Name.split('/');
+          childLastName = childNameArray[1];
+          if (childLastName !== familyLastname){
+            errors.push(`ERROR: FAMILY: US16: child ${familyData[familyDataElement].Children[childIndex]} has a different last name than other male members of family ${familyData[familyDataElement].ID} `)
+          }
+      }
+
+    }
+  }
+}
 
 //Printing errors in GEDCOM file
 for (error in errors) {
   console.log(errors[error]);
 }
+
