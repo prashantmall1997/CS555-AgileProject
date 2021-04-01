@@ -841,6 +841,34 @@ for (let line = 0; line < data.length; line++) {
   }
 }
 
+
+//US15  Fewer than 15 siblings  There should be fewer than 15 siblings in a family
+for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+  if (familyData[familyDataElement].Children.length > 15){
+    errors.push(`ERROR: FAMILY: US15: ${familyData[familyDataElement].ID}: More than 15 siblings in a family`);
+  }
+}
+
+//US16  Male last names All male members of a family should have the same last name
+for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+  nameArray = familyData[familyDataElement].HusbandName.split('/');
+  familyLastname = nameArray[1];
+  for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){
+
+    for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+
+      if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex] && individualData[indiDataElement].Gender == 'M'){
+          childNameArray = individualData[indiDataElement].Name.split('/');
+          childLastName = childNameArray[1];
+          if (childLastName !== familyLastname){
+            errors.push(`ERROR: FAMILY: US16: child ${familyData[familyDataElement].Children[childIndex]} has a different last name than other male members of family ${familyData[familyDataElement].ID} `)
+          }
+      }
+
+    }
+  }
+}
+
 //Printing errors in GEDCOM file
 for (error in errors) {
   console.log(errors[error]);
