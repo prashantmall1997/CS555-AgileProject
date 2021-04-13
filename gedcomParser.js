@@ -1003,10 +1003,6 @@ for (var people = 0; people < individualData.length; people++) {
   }
 }
 
-// Printing errors in GEDCOM file
-for (error in errors) {
-  console.log(errors[error]);
-}
 //US35 List recent births
 for (var people = 0; people < individualData.length; people++) {
   if (individualData[people].Alive === true) {
@@ -1045,4 +1041,9 @@ for (var people = 0; people < individualData.length; people++) {
       }
     }
   }
+}
+
+// Printing errors in GEDCOM file
+for (error in errors) {
+  console.log(errors[error]);
 }
