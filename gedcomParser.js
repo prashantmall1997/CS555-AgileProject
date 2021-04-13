@@ -1007,3 +1007,42 @@ for (var people = 0; people < individualData.length; people++) {
 for (error in errors) {
   console.log(errors[error]);
 }
+//US35 List recent births
+for (var people = 0; people < individualData.length; people++) {
+  if (individualData[people].Alive === true) {
+    if (individualData[people].Birthday) {
+      var curDate = new Date();
+
+      var birthday = new Date(individualData[people].Birthday);
+
+      if (
+        (curDate.getTime() - birthday.getTime()) / (1000 * 3600 * 24) <= 30 &&
+        (curDate.getTime() - birthday.getTime()) / (1000 * 3600 * 24) >= 0
+      ) {
+        errors.push(
+          `LIST: INDIVIDUAL: US35: ${individualData[people].Name} (${individualData[people].ID}) was born within 30 days of current date`
+        );
+      }
+    }
+  }
+}
+
+//US36 List recent deaths
+for (var people = 0; people < individualData.length; people++) {
+  if (individualData[people].Alive === false) {
+    if (individualData[people].Death) {
+      var curDate = new Date();
+
+      var death = new Date(individualData[people].Death);
+
+      if (
+        (curDate.getTime() - death.getTime()) / (1000 * 3600 * 24) <= 30 &&
+        (curDate.getTime() - death.getTime()) / (1000 * 3600 * 24) >= 0
+      ) {
+        errors.push(
+          `LIST: INDIVIDUAL: US36: ${individualData[people].Name} (${individualData[people].ID}) died within 30 days of current date`
+        );
+      }
+    }
+  }
+}
