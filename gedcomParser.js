@@ -50,7 +50,7 @@ var individualDetails = {
   Name: "",
   Gender: "",
   Birthday: "",
-  Age: 0,
+  Age: Number,
   Alive: true,
   Death: "NA",
   Child: "NA",
@@ -126,7 +126,7 @@ for (let line = 0; line < data.length; line++) {
       Name: "",
       Gender: "",
       Birthday: "",
-      Age: 0,
+      Age: Number,
       Alive: true,
       Death: "NA",
       Child: "NA",
@@ -415,70 +415,135 @@ for (
 }
 
 //US09	Birth before death of parents	Child should be born before death of mother and before 9 months after death of father
-for (let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+for (
+  let familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  for (
+    let indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    if (
+      familyData[familyDataElement].HusbandId ==
+        individualData[indiDataElement].ID &&
+      !individualData[indiDataElement].Alive
+    ) {
+      //finding husbandid and checking further if not alive
+      husbandDeathDate = new Date(
+        Date.parse(individualData[indiDataElement].Death)
+      );
+      fatherDeathDate = individualData[indiDataElement].Death;
+      for (
+        let childIndex = 0;
+        childIndex < familyData[familyDataElement].Children.length;
+        childIndex++
+      ) {
+        //iterating through each element in children array
 
-  for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-      if (familyData[familyDataElement].HusbandId == individualData[indiDataElement].ID && !individualData[indiDataElement].Alive){  //finding husbandid and checking further if not alive
-        husbandDeathDate = new Date(Date.parse(individualData[indiDataElement].Death));
-        fatherDeathDate = individualData[indiDataElement].Death;
-        for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){   //iterating through each element in children array
-    
-          for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+        for (
+          let indiDataElement = 0;
+          indiDataElement < individualData.length;
+          indiDataElement++
+        ) {
+          if (
+            individualData[indiDataElement].ID ==
+            familyData[familyDataElement].Children[childIndex]
+          ) {
+            childBirthDay = new Date(
+              Date.parse(individualData[indiDataElement].Birthday)
+            );
+            difference = calculateAge(childBirthDay, husbandDeathDate); //calculating difference between child birthdate and father's death date
 
-            if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex]){
-                childBirthDay = new Date(Date.parse(individualData[indiDataElement].Birthday));
-                difference = calculateAge(childBirthDay,husbandDeathDate);  //calculating difference between child birthdate and father's death date
-                
-                if (difference < 0.75) {                                   //child should be born before 9 months from death of father
-                  errors.push(`ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of father (${familyData[familyDataElement].HusbandId}) on ${fatherDeathDate} `);
-                }
+            if (difference < 0.75) {
+              //child should be born before 9 months from death of father
+              errors.push(
+                `ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of father (${familyData[familyDataElement].HusbandId}) on ${fatherDeathDate} `
+              );
             }
           }
         }
       }
-      if (familyData[familyDataElement].WifeId == individualData[indiDataElement].ID && !individualData[indiDataElement].Alive){
-        wifeDeathDate = new Date(Date.parse(individualData[indiDataElement].Death));
-        motherDeathDate = individualData[indiDataElement].Death;
-        for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){   //iterating through each element in children array
-    
-          for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+    }
+    if (
+      familyData[familyDataElement].WifeId ==
+        individualData[indiDataElement].ID &&
+      !individualData[indiDataElement].Alive
+    ) {
+      wifeDeathDate = new Date(
+        Date.parse(individualData[indiDataElement].Death)
+      );
+      motherDeathDate = individualData[indiDataElement].Death;
+      for (
+        let childIndex = 0;
+        childIndex < familyData[familyDataElement].Children.length;
+        childIndex++
+      ) {
+        //iterating through each element in children array
 
-            if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex]){
-                childBirthDay = new Date(Date.parse(individualData[indiDataElement].Birthday));
-                                        
-                if (!dateChecker(childBirthDay, wifeDeathDate)){    //if mother's death data is before child's birthdate condition is true and throws error
-                    errors.push(`ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of mother (${familyData[familyDataElement].WifeId}) on ${motherDeathDate}`);
-                }
+        for (
+          let indiDataElement = 0;
+          indiDataElement < individualData.length;
+          indiDataElement++
+        ) {
+          if (
+            individualData[indiDataElement].ID ==
+            familyData[familyDataElement].Children[childIndex]
+          ) {
+            childBirthDay = new Date(
+              Date.parse(individualData[indiDataElement].Birthday)
+            );
+
+            if (!dateChecker(childBirthDay, wifeDeathDate)) {
+              //if mother's death data is before child's birthdate condition is true and throws error
+              errors.push(
+                `ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of mother (${familyData[familyDataElement].WifeId}) on ${motherDeathDate}`
+              );
             }
           }
         }
-        
       }
-  } 
+    }
+  }
 }
 
 //US10	-Marriage after 14	-Marriage should be at least 14 years after birth of both spouses (parents must be at least 14 years old)
-for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
-  let marriageDate = new Date(Date.parse(familyData[familyDataElement].Married));
+for (
+  let familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  let marriageDate = new Date(
+    Date.parse(familyData[familyDataElement].Married)
+  );
   let husbandId = familyData[familyDataElement].HusbandId;
   let wifeId = familyData[familyDataElement].WifeId;
   //console.log(marriageDate);
-  for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-      if (individualData[indiDataElement].ID == husbandId){
-        husbandBirthday = individualData[indiDataElement].Birthday;
-      }
-      if (individualData[indiDataElement].ID == wifeId){
-        wifeBirthday = individualData[indiDataElement].Birthday;
-      }
+  for (
+    let indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    if (individualData[indiDataElement].ID == husbandId) {
+      husbandBirthday = individualData[indiDataElement].Birthday;
+    }
+    if (individualData[indiDataElement].ID == wifeId) {
+      wifeBirthday = individualData[indiDataElement].Birthday;
+    }
   }
-  let diffHusband = calculateAge(marriageDate, husbandBirthday);  //calculates the difference between the marriage date and husband birth date
-  let diffWife = calculateAge(marriageDate,wifeBirthday);           //calculates the difference between the marriage date and wife birth date
-  
-  if (diffHusband < 14 ){
-    errors.push(`ERROR: INDIVIDUAL: US10: ${husbandId}: married before the age of 14`);
+  let diffHusband = calculateAge(marriageDate, husbandBirthday); //calculates the difference between the marriage date and husband birth date
+  let diffWife = calculateAge(marriageDate, wifeBirthday); //calculates the difference between the marriage date and wife birth date
+
+  if (diffHusband < 14) {
+    errors.push(
+      `ERROR: INDIVIDUAL: US10: ${husbandId}: married before the age of 14`
+    );
   }
-  if (diffWife < 14 ){
-    errors.push(`ERROR: INDIVIDUAL: US10: ${wifeId}: married before the age of 14`);
+  if (diffWife < 14) {
+    errors.push(
+      `ERROR: INDIVIDUAL: US10: ${wifeId}: married before the age of 14`
+    );
   }
 }
 
@@ -675,10 +740,9 @@ for (let line = 0; line < data.length; line++) {
 
         if (wifeAge - childAge >= 60) {
           errors.push(
-            `ERROR: FAMILY: US12: ${data[line - famOneIncrement].split(" ")[1].replace(
-              /[@]/g,
-              ""
-            )}: Age of Mother ${wife.replace(
+            `ERROR: FAMILY: US12: ${data[line - famOneIncrement]
+              .split(" ")[1]
+              .replace(/[@]/g, "")}: Age of Mother ${wife.replace(
               /[@]/g,
               ""
             )} should be less than 60 years older than her children.`
@@ -687,19 +751,18 @@ for (let line = 0; line < data.length; line++) {
 
         if (husbandAge - childAge >= 80) {
           errors.push(
-            `ERROR: FAMILY: US12: ${data[line - famOneIncrement].split(" ")[1].replace(
-              /[@]/g,
-              ""
-            )}: Age of Father ${husband.replace(
+            `ERROR: FAMILY: US12: ${data[line - famOneIncrement]
+              .split(" ")[1]
+              .replace(/[@]/g, "")}: Age of Father ${husband.replace(
               /[@]/g,
               ""
             )} should be less than 80 years older than his children.`
           );
         }
 
-        console.log(
-          `Child ${child} age: ${childAge} of Father ${husband} Age: ${husbandAge} & Mother ${wife} Age: ${wifeAge}`
-        );
+        // console.log(
+        //   `Child ${child} age: ${childAge} of Father ${husband} Age: ${husbandAge} & Mother ${wife} Age: ${wifeAge}`
+        // );
       }
     }
   }
@@ -748,7 +811,7 @@ for (let line = 0; line < data.length; line++) {
         children.push(childDate);
       }
     }
-  
+
     for (childCount = 0; childCount < children.length; childCount++) {
       for (
         compareChild = childCount + 1;
@@ -841,36 +904,106 @@ for (let line = 0; line < data.length; line++) {
   }
 }
 
-
 //US15  Fewer than 15 siblings  There should be fewer than 15 siblings in a family
-for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
-  if (familyData[familyDataElement].Children.length > 15){
-    errors.push(`ERROR: FAMILY: US15: ${familyData[familyDataElement].ID}: More than 15 siblings in a family`);
+for (
+  let familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  if (familyData[familyDataElement].Children.length > 15) {
+    errors.push(
+      `ERROR: FAMILY: US15: ${familyData[familyDataElement].ID}: More than 15 siblings in a family`
+    );
   }
 }
 
 //US16  Male last names All male members of a family should have the same last name
-for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
-  nameArray = familyData[familyDataElement].HusbandName.split('/');
+for (
+  let familyDataElement = 0;
+  familyDataElement < familyData.length;
+  familyDataElement++
+) {
+  nameArray = familyData[familyDataElement].HusbandName.split("/");
   familyLastname = nameArray[1];
-  for (let childIndex = 0; childIndex < familyData[familyDataElement].Children.length; childIndex++){
-
-    for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-
-      if (individualData[indiDataElement].ID == familyData[familyDataElement].Children[childIndex] && individualData[indiDataElement].Gender == 'M'){
-          childNameArray = individualData[indiDataElement].Name.split('/');
-          childLastName = childNameArray[1];
-          if (childLastName !== familyLastname){
-            errors.push(`ERROR: FAMILY: US16: child ${familyData[familyDataElement].Children[childIndex]} has a different last name than other male members of family ${familyData[familyDataElement].ID} `)
-          }
+  for (
+    let childIndex = 0;
+    childIndex < familyData[familyDataElement].Children.length;
+    childIndex++
+  ) {
+    for (
+      let indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].Children[childIndex] &&
+        individualData[indiDataElement].Gender == "M"
+      ) {
+        childNameArray = individualData[indiDataElement].Name.split("/");
+        childLastName = childNameArray[1];
+        if (childLastName !== familyLastname) {
+          errors.push(
+            `ERROR: FAMILY: US16: child ${familyData[familyDataElement].Children[childIndex]} has a different last name than other male members of family ${familyData[familyDataElement].ID} `
+          );
+        }
       }
-
     }
   }
 }
 
-//Printing errors in GEDCOM file
+//US25 Unique first names in families
+for (var family = 0; family < familyData.length; family++) {
+  const childrenData = [];
+  for (
+    var children = 0;
+    children < familyData[family].Children.length;
+    children++
+  ) {
+    const child = familyData[family].Children[children];
+
+    for (var people = 0; people < individualData.length; people++) {
+      if (child === individualData[people].ID) {
+        var childDOB = individualData[people].Birthday;
+        var childName = individualData[people].Name;
+        break;
+      }
+    }
+    childrenData.push({
+      ID: child,
+      FID: familyData[family].ID,
+      Name: childName,
+      Birthday: childDOB,
+    });
+  }
+  for (var loop = 0; loop < childrenData.length; loop++) {
+    for (
+      var innerLoop = loop + 1;
+      innerLoop < childrenData.length;
+      innerLoop++
+    ) {
+      if (
+        childrenData[loop].Name === childrenData[innerLoop].Name &&
+        childrenData[loop].Birthday === childrenData[innerLoop].Birthday
+      ) {
+        errors.push(
+          `ERROR: FAMILY: US25: Name and DOB of ${childrenData[loop].ID} & ${childrenData[innerLoop].ID} are same in family ${childrenData[innerLoop].FID}`
+        );
+      }
+    }
+  }
+}
+
+//US27 Include individual ages
+for (var people = 0; people < individualData.length; people++) {
+  if (isNaN(individualData[people].Age)) {
+    errors.push(
+      `ERROR: ERROR: US27: Age of ${individualData[people].ID} is not included`
+    );
+  }
+}
+
+// Printing errors in GEDCOM file
 for (error in errors) {
   console.log(errors[error]);
 }
-
