@@ -6,7 +6,6 @@
 2 SURN Pearson
 1 SEX F
 1 BIRT
-2 DATE 27 JAN 1950
 1 FAMS @F1@
 1 FAMS @F2@
 0 NOTE end of individual Rebecca Pearson
@@ -175,6 +174,17 @@
 2 DATE 17 AUG 1997
 1 FAMC @F1@
 0 NOTE end of individual Andy Rivas
+0 @I19@ INDI
+1 NAME Kevin /Pearson/
+2 GIVN Kevin
+2 SURN Pearson
+1 SEX M
+1 BIRT
+2 DATE 31 AUG 1780
+1 FAMS @F3@
+1 FAMC @F2@
+1 FAMC @F1@
+0 NOTE end of individual Kevin Pearson
 0 @F1@ FAM
 1 MARR
 2 DATE 22 JAN 1999
@@ -184,6 +194,7 @@
 1 CHIL @I18@
 1 CHIL @I3@
 1 CHIL @I4@
+1 CHIL @I19@
 0 NOTE end of family 1
 0 @F2@ FAM
 1 MARR
