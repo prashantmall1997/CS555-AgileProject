@@ -3,10 +3,16 @@ const {
   US01,
   US03,
   US04,
+  US05,
+  US06,
   US11,
   US12,
   US13,
   US14,
+  US15,
+  US16,
+  US21,
+  US22,
   US25,
   US27,
   US35,
@@ -33,6 +39,14 @@ test("Test US04", () => {
   expect(US04("gedcomTestData_US04")).toBe(false);
 });
 
+test("Test US05", () => {
+  expect(US05("gedcomTestData_US05")).toBe(false);
+});
+
+test("Test US06", () => {
+  expect(US06("gedcomTestData_US06")).toBe(false);
+});
+
 test("Test US11", () => {
   expect(US11("gedcomTestData_US11")).toBe(false);
 });
@@ -49,6 +63,21 @@ test("Test US14", () => {
   expect(US14("")).toBe(false);
 });
 
+test("Test US15", () => {
+  expect(US15("gedcomTestData_US15")).toBe(false);
+});
+
+test("Test US16", () => {
+  expect(US16("gedcomTestData_US16")).toBe(false);
+});
+
+test("Test US21", () => {
+  expect(US21("gedcomTestData_US21")).toBe(false);
+});
+
+test("Test US22", () => {
+  expect(US22("gedcomTestData_US22")).toBe(false);
+});
 test("Test US25", () => {
   expect(US25("")).toBe(false);
 });

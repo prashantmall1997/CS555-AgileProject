@@ -1,0 +1,244 @@
+0 NOTE GitHub Repository CS555-AgileProject
+0 NOTE three generations of an imaginary family
+0 @I1@ INDI
+1 NAME Rebecca /Pearson/
+2 GIVN Rebecca
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 27 JAN 1950
+1 FAMS @F1@
+1 FAMS @F2@
+0 NOTE end of individual Rebecca Pearson
+0 @I2@ INDI
+1 NAME Jack /Pearson/
+2 GIVN Jack
+2 SURN Pearson
+1 SEX M
+1 BIRT
+2 DATE 31 AUG 1944
+1 DEAT Y
+2 DATE 26 JAN 1998
+1 FAMS @F2@
+0 NOTE end of individual Jack Pearson
+0 @I3@ INDI
+1 NAME Kevin /Pearson/
+2 GIVN Kevin
+2 SURN Pearson
+1 SEX M
+1 BIRT
+2 DATE 31 AUG 1980
+1 FAMS @F3@
+1 FAMC @F2@
+1 FAMC @F1@
+0 NOTE end of individual Kevin Pearson
+0 @I4@ INDI
+1 NAME Kate /Damon/
+2 GIVN Kate
+2 SURN Damon
+1 SEX F
+1 BIRT
+2 DATE 31 AUG 1980
+1 FAMS @F4@
+1 FAMC @F2@
+1 FAMC @F1@
+0 NOTE end of individual Kate Damon
+0 @I5@ INDI
+1 NAME Randall /Pearson/
+2 GIVN Randall
+2 SURN Pearson
+1 SEX M
+1 BIRT
+2 DATE 31 AUG 1980
+1 FAMS @F5@
+1 FAMC @F2@
+1 FAMC @F1@
+0 NOTE end of individual Randall Pearson
+0 @I6@ INDI
+1 NAME Beth /Pearson/
+2 GIVN Beth
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 20 JAN 1980
+1 FAMS @F5@
+0 NOTE end of individual Beth Pearson
+0 @I7@ INDI
+1 NAME Annie /Pearson/
+2 GIVN Annie
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 14 SEP 2010
+1 FAMC @F5@
+0 NOTE end of individual Annie Pearson
+0 @I8@ INDI
+1 NAME Tess /Pearson/
+2 GIVN Tess
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 6 MAY 2008
+1 FAMC @F5@
+0 NOTE end of individual Tess Pearson
+0 @I9@ INDI
+1 NAME Deja /Pearson/
+2 GIVN Deja
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 20 JUL 2006
+1 FAMC @F5@
+0 NOTE end of individual Deja Pearson
+0 @I10@ INDI
+1 NAME Toby /Damon/
+2 GIVN Toby
+2 SURN Damon
+1 SEX M
+1 BIRT
+2 DATE 5 NOV 19
+1 FAMS @F4@
+0 NOTE end of individual Toby Damon
+0 @I11@ INDI
+1 NAME Jackie /Damon/
+2 GIVN Jackie
+2 SURN Damon
+1 SEX M
+1 BIRT
+2 DATE 13 JUN 2012
+1 FAMC @F4@
+0 NOTE end of individual Jackie Damon
+0 @I12@ INDI
+1 NAME Hailey /Damon/
+2 GIVN Hailey
+2 SURN Damon
+1 SEX F
+1 BIRT
+2 DATE 16 AUG 2014
+1 FAMC @F4@
+0 NOTE end of individual Hailey Damon
+0 @I13@ INDI
+1 NAME Madison /Pearson/
+2 GIVN Madison
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 12 AUG 1982
+1 FAMS @F3@
+0 NOTE end of individual Madison Pearson
+0 @I14@ INDI
+1 NAME Nicholas /Pearson/
+2 GIVN Nicholas
+2 SURN Pearson
+1 SEX M
+1 BIRT
+2 DATE 28 AUG 2020
+1 FAMC @F3@
+0 NOTE end of individual Nicholas Pearson
+0 @I15@ INDI
+1 NAME Freya /Pearson/
+2 GIVN Freya
+2 SURN Pearson
+1 SEX F
+1 BIRT
+2 DATE 10 AUG 2020
+1 FAMC @F3@
+0 NOTE end of individual Freya Pearson
+0 @I16@ INDI
+1 NAME Miguel /Rivas/
+2 GIVN Miguel
+2 SURN Rivas
+1 SEX M
+1 BIRT
+2 DATE 14 APR 1944
+1 FAMS @F1@
+0 NOTE end of individual Miguel Rivas
+0 @I17@ INDI
+1 NAME Amber /Rivas/
+2 GIVN Amber
+2 SURN Rivas
+1 SEX F
+1 BIRT
+2 DATE 8 AUG 1999
+1 FAMC @F1@
+0 NOTE end of individual Amber Rivas
+0 @I18@ INDI
+1 NAME Andy /Rivas/
+2 GIVN Andy
+2 SURN Rivas
+1 SEX M
+1 BIRT
+2 DATE 17 AUG 2000
+1 FAMC @F1@
+0 NOTE end of individual Andy Rivas
+0 @I19@ INDI
+1 NAME Courtney /Cox/
+2 GIVN Courtney
+2 SURN Cox
+1 SEX F
+1 BIRT
+2 DATE 24 JUL 2000
+1 FAMS @F6@
+0 NOTE end of individual Courtney Cox
+0 @I20@ INDI
+1 NAME Matthew /Cox/
+2 GIVN Matthew
+2 SURN Cox
+1 SEX M
+1 BIRT
+2 DATE 12 DEC 2000
+1 DEAT
+2 DATE 12 DEC 2020
+1 FAMS @F5@
+0 NOTE end of individual Matthew Cox
+0 @F1@ FAM
+1 MARR
+2 DATE 22 JAN 1976
+1 HUSB @I16@
+1 WIFE @I1@
+1 CHIL @I17@
+1 CHIL @I18@
+0 NOTE end of family 1
+0 @F2@ FAM
+1 MARR
+2 DATE 10 JAN 1976
+1 HUSB @I2@
+1 WIFE @I1@
+1 CHIL @I3@
+1 CHIL @I4@
+1 CHIL @I5@
+0 NOTE end of family 2
+0 @F3@ FAM
+1 MARR 
+2 DATE 19 DEC 2019
+1 DIV
+2 DATE 11 FEB 2021
+1 HUSB @I3@
+1 WIFE @I13@
+1 CHIL @I14@
+1 CHIL @I15@
+0 NOTE end of family 3
+0 @F4@ FAM
+1 MARR
+2 DATE 18 MAY 2000
+1 HUSB @I10@
+1 WIFE @I4@
+1 CHIL @I11@
+1 CHIL @I12@
+0 NOTE end of family 4
+0 @F5@ FAM
+1 MARR
+2 DATE 25 AUG 2002
+1 HUSB @I5@
+1 WIFE @I6@
+1 CHIL @I7@
+1 CHIL @I8@
+1 CHIL @I9@
+0 NOTE end of family 5
+0 @F6@ FAM
+1 MARR
+2 DATE 01 JAN 2021
+1 HUSB @I20@
+2 WIFE @I19@
+0 NOTE end of family 6
+0 TRLR
