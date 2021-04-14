@@ -1003,10 +1003,6 @@ for (var people = 0; people < individualData.length; people++) {
   }
 }
 
-// Printing errors in GEDCOM file
-for (error in errors) {
-  console.log(errors[error]);
-}
 //US35 List recent births
 for (var people = 0; people < individualData.length; people++) {
   if (individualData[people].Alive === true) {
@@ -1045,4 +1041,69 @@ for (var people = 0; people < individualData.length; people++) {
       }
     }
   }
+}
+
+//US23	Unique name and birth date	No more than one individual with the same name and birth date should appear in a GEDCOM file
+
+let nameBirthDayList = [];
+
+for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+  nameBirthDayList.push({   
+    id: individualData[indiDataElement].ID,                                                           //storing all Individual name and birthdate in an array
+    name: individualData[indiDataElement].Name,
+    birthday: individualData[indiDataElement].Birthday}
+    );                                
+} 
+
+for (let index = 0; index < nameBirthDayList.length; index++){
+  if(countOccurenceObject(nameBirthDayList, nameBirthDayList[index]) != 1){
+    errors.push(`ERROR: INDIVIDUAL: US23 individual with ID ${nameBirthDayList[index].id} name: ${nameBirthDayList[index].name} birth date: ${nameBirthDayList[index].birthday} is repeated. Individual must have unique name and birthday.`)
+  }
+}
+
+function countOccurenceObject(nameBirthDayList, nameBirthdayObject){
+  let count = 0;
+  for (let index = 0; index < nameBirthDayList.length; index++){
+      if(nameBirthdayObject.name.toLowerCase() === nameBirthDayList[index].name.toLowerCase()){
+        if(nameBirthdayObject.birthday === nameBirthDayList[index].birthday){
+          count++;
+        }
+      }
+  }
+  return count;
+}
+
+//US24	Unique families by spouses	No more than one family with the same spouses by name and the same marriage date should appear in a GEDCOM file
+let spousesNameMarriageDateList = [];
+for (let famDataElement = 0; famDataElement < familyData.length; famDataElement++){
+  spousesNameMarriageDateList.push({ 
+    ID: familyData[famDataElement].ID,                                                                //storing all family spouses name and marriage dates in an array
+    husbandName: familyData[famDataElement].HusbandName,
+    wifeName:  familyData[famDataElement].WifeName,
+    marriageDate: familyData[famDataElement].Married
+  });                                
+}  
+// console.log(spousesNameMarriageDateList);
+for (let index = 0; index < spousesNameMarriageDateList.length; index++){
+  if(countOccurenceSpousesMarriageDate(spousesNameMarriageDateList, spousesNameMarriageDateList[index]) != 1){
+    errors.push(`ERROR: FAMILY: US24: Family with ID ${spousesNameMarriageDateList[index].ID} does not have unique names of spouses and marriage date`);
+  }
+}
+
+function countOccurenceSpousesMarriageDate(spousesNameMarriageDateList, spousesNameMarriageDateObject){
+  let count = 0;
+  for (let index = 0; index < spousesNameMarriageDateList.length; index++){
+    if(spousesNameMarriageDateObject.husbandName.toLowerCase() === spousesNameMarriageDateList[index].husbandName.toLowerCase() ||
+    spousesNameMarriageDateObject.wifeName.toLowerCase() === spousesNameMarriageDateList[index].wifeName.toLowerCase()){
+        if(spousesNameMarriageDateObject.marriageDate === spousesNameMarriageDateList[index].marriageDate){
+          count++;
+        }
+    }
+  }
+  return count;
+}
+
+//Printing errors in GEDCOM file
+for (error in errors) {
+  console.log(errors[error]);
 }
