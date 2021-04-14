@@ -323,6 +323,118 @@ function US04(filename) {
 }
 US04(gedcomFileName);
 
+//US05 - Marriage before death - Marriage should occur before death of either spouse
+function US05(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  let familyDataElement, indiDataElement;
+  for (
+    familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    marriageDate = new Date(Date.parse(familyData[familyDataElement].Married));
+
+    for (
+      indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].HusbandId &&
+        individualData[indiDataElement].Death != "NA"
+      ) {
+        if (!dateChecker(marriageDate, individualData[indiDataElement].Death)) {
+          errors.push(
+            `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after husband's (${familyData[familyDataElement].HusbandId}) death on ${individualData[indiDataElement].Death}`
+          );
+          noError = false;
+        }
+      }
+
+      if (
+        individualData[indiDataElement].ID ==
+          familyData[familyDataElement].WifeId &&
+        individualData[indiDataElement].Death != "NA"
+      ) {
+        if (!dateChecker(marriageDate, individualData[indiDataElement].Death)) {
+          errors.push(
+            `ERROR: FAMILY: US05: ${familyData[familyDataElement].ID}: Married ${familyData[familyDataElement].Married} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
+          );
+          noError = false;
+        }
+      }
+    }
+  }
+
+  return noError;
+}
+US05(gedcomFileName);
+
+//US06	Divorce before death	Divorce can only occur before death of both spouses
+function US06(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+  let familyDataElement, indiDataElement;
+  for (
+    familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    if (familyData[familyDataElement].Divorced != "NA") {
+      for (
+        indiDataElement = 0;
+        indiDataElement < individualData.length;
+        indiDataElement++
+      ) {
+        if (
+          individualData[indiDataElement].ID ==
+            familyData[familyDataElement].HusbandId &&
+          individualData[indiDataElement].Death != "NA"
+        ) {
+          if (
+            !dateChecker(
+              familyData[familyDataElement].Divorced,
+              individualData[indiDataElement].Death
+            )
+          ) {
+            errors.push(
+              `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after husband's (${familyData[familyDataElement].HusbandId}) death on ${individualData[indiDataElement].Death}`
+            );
+            noError = false;
+          }
+        }
+        if (
+          individualData[indiDataElement].ID ==
+            familyData[familyDataElement].WifeId &&
+          individualData[indiDataElement].Death != "NA"
+        ) {
+          if (
+            !dateChecker(
+              familyData[familyDataElement].Divorced,
+              individualData[indiDataElement].Death
+            )
+          ) {
+            errors.push(
+              `ERROR: FAMILY: US06: ${familyData[familyDataElement].ID}: Divorced ${familyData[familyDataElement].Divorced} after wife's (${familyData[familyDataElement].WifeId}) death on ${individualData[indiDataElement].Death}`
+            );
+            noError = false;
+          }
+        }
+      }
+    }
+  }
+
+  return noError;
+}
+US06(gedcomFileName);
+
 //US11 Marriage should not occur during marriage to another spouse
 function US11(fileName) {
   var data = parseGedcom(fileName);
@@ -724,6 +836,192 @@ function US14(fileName) {
 }
 US14(gedcomFileName);
 
+//US15  Fewer than 15 siblings  There should be fewer than 15 siblings in a family
+function US15(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    let familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    if (familyData[familyDataElement].Children.length > 15) {
+      errors.push(
+        `ERROR: FAMILY: US15: ${familyData[familyDataElement].ID}: More than 15 siblings in a family`
+      );
+      noError = false;
+    }
+  }
+  return noError;
+}
+US15(gedcomFileName);
+
+//US16  Male last names All male members of a family should have the same last name
+function US16(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    let familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    nameArray = familyData[familyDataElement].HusbandName.split("/");
+    familyLastname = nameArray[1];
+    for (
+      let childIndex = 0;
+      childIndex < familyData[familyDataElement].Children.length;
+      childIndex++
+    ) {
+      for (
+        let indiDataElement = 0;
+        indiDataElement < individualData.length;
+        indiDataElement++
+      ) {
+        if (
+          individualData[indiDataElement].ID ==
+            familyData[familyDataElement].Children[childIndex] &&
+          individualData[indiDataElement].Gender == "M"
+        ) {
+          childNameArray = individualData[indiDataElement].Name.split("/");
+          childLastName = childNameArray[1];
+          if (childLastName !== familyLastname) {
+            errors.push(
+              `ERROR: FAMILY: US16: child ${familyData[familyDataElement].Children[childIndex]} has a different last name than other male members of family ${familyData[familyDataElement].ID} `
+            );
+            noError = false;
+          }
+        }
+      }
+    }
+  }
+  return noError;
+}
+US16(gedcomFileName);
+
+//US21	Correct gender for role	Husband in family should be male and wife in family should be female
+function US21(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    let familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    for (
+      let indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        familyData[familyDataElement].HusbandId ==
+        individualData[indiDataElement].ID
+      ) {
+        //checking if husband is male
+        if (individualData[indiDataElement].Gender != "M")
+          errors.push(
+            `ERROR: FAMILY: US 21: Husband in family ${familyData[familyDataElement].ID} is not a male`
+          );
+      }
+      if (
+        familyData[familyDataElement].WifeId ==
+        individualData[indiDataElement].ID
+      ) {
+        //checking if wife is female
+        if (individualData[indiDataElement].Gender != "F")
+          errors.push(
+            `ERROR: FAMILY: US 21: Wife in family ${familyData[familyDataElement].ID} is not a female`
+          );
+        noError = false;
+      }
+    }
+  }
+  return noError;
+}
+US21(gedcomFileName);
+
+function countOccurence(idArray, id) {
+  //counts the number of times an id is repeated in the array
+  let count = 0;
+  for (let index = 0; index < idArray.length; index++) {
+    if (id == idArray[index]) {
+      count++;
+    }
+  }
+  return count;
+}
+
+//US22	Unique IDs	All individual IDs should be unique and all family IDs should be unique
+function US22(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  let individualIDsArray = [];
+  for (
+    let indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    individualIDsArray.push(individualData[indiDataElement].ID); //storing all Individual IDs in an array
+  }
+
+  for (let index = 0; index < individualIDsArray.length; index++) {
+    if (countOccurence(individualIDsArray, individualIDsArray[index]) != 1) {
+      //if true that means ID is repeated and not unique
+      errors.push(
+        `ERROR: INDIVIDUAL: US22: ID ${individualIDsArray[index]} is repeated. Individual ID must be unique`
+      );
+      noError = false;
+    }
+  }
+
+  let familyIDsArray = [];
+  for (
+    let famDataElement = 0;
+    famDataElement < familyData.length;
+    famDataElement++
+  ) {
+    familyIDsArray.push(familyData[famDataElement].ID); //storing all family IDs in an array
+  }
+
+  for (let index = 0; index < familyIDsArray.length; index++) {
+    if (countOccurence(familyIDsArray, familyIDsArray[index]) != 1) {
+      //if true that means ID is repeated and not unique
+      errors.push(
+        `ERROR: FAMILY: US22: ID ${familyIDsArray[index]} is repeated. Family ID must be unique`
+      );
+      noError = false;
+    }
+  }
+  return noError;
+}
+US22(gedcomFileName);
+
+function countOccurenceObject(nameBirthDayList, nameBirthdayObject) {
+  let count = 0;
+  for (let index = 0; index < nameBirthDayList.length; index++) {
+    if (
+      nameBirthdayObject.name.toLowerCase() ===
+      nameBirthDayList[index].name.toLowerCase()
+    ) {
+      if (nameBirthdayObject.birthday === nameBirthDayList[index].birthday) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
 //US25 Unique first names in families
 function US25(fileName) {
   var data = parseGedcom(fileName);
@@ -873,10 +1171,16 @@ module.exports = {
   US01,
   US03,
   US04,
+  US05,
+  US06,
   US11,
   US12,
   US13,
   US14,
+  US15,
+  US16,
+  US21,
+  US22,
   US25,
   US27,
   US35,
