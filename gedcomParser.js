@@ -255,6 +255,74 @@ function US01(fileName) {
 }
 US01(gedcomFileName);
 
+//US03 - Birth before death
+function US03(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    if (individualData[indiDataElement].Death != "NA") {
+      if (
+        !dateChecker(
+          individualData[indiDataElement].Birthday,
+          individualData[indiDataElement].Death
+        )
+      ) {
+        errors.push(
+          `ERROR: INDIVIDUAL: ${individualData[indiDataElement].ID}: US03: Birth ${individualData[indiDataElement].Birthday} occurs after death ${individualData[indiDataElement].Death}`
+        );
+        noError = false;
+      }
+    }
+  }
+
+  return noError;
+}
+US03(gedcomFileName);
+
+//US04 - Marriage before divorce
+function US04(filename) {
+  var data = parseGedcom(filename);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    if (familyData[familyDataElement].Divorced != "NA") {
+      if (!familyData[familyDataElement].Married) {
+        errors.push(
+          `ERROR: FAMILY: US04: ${familyData[familyDataElement].ID}: Divorce ${familyData[familyDataElement].Divorced} cannot occur without marriage.`
+        );
+        noError = false;
+      }
+
+      if (
+        !dateChecker(
+          familyData[familyDataElement].Married,
+          familyData[familyDataElement].Divorced
+        )
+      ) {
+        errors.push(
+          `ERROR: FAMILY: US04: ${familyData[familyDataElement].ID}: Divorce ${familyData[familyDataElement].Divorced} occurs before marriage in ${familyData[familyDataElement].Married}.`
+        );
+        noError = false;
+      }
+    }
+  }
+  return noError;
+}
+US04(gedcomFileName);
+
 //US11 Marriage should not occur during marriage to another spouse
 function US11(fileName) {
   var data = parseGedcom(fileName);
@@ -498,6 +566,164 @@ function US12(fileName) {
 }
 US12(gedcomFileName);
 
+//US13 Birth dates of siblings should be more than 8 months apart or less than 2 days apart (twins may be born one day apart, e.g. 11:59 PM and 12:02 AM the following calendar day)
+function US13(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (let line = 0; line < data.length; line++) {
+    var lineData = data[line].split(" ");
+    if (lineData[2] === "FAM") {
+      var FID = lineData[1].replace(/[@]/g, "");
+
+      var children = [];
+
+      for (let counter = line + 1; counter < data.length; counter++) {
+        var familyLineData = data[counter].split(" ");
+        if (familyLineData[2] === "FAM") {
+          break;
+        }
+
+        if (familyLineData[1] === "CHIL") {
+          var child = familyLineData[2];
+
+          for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+            var lineData = data[lineLoop].split(" ");
+
+            if (lineData[1] === child) {
+              for (
+                let counterLoop = lineLoop + 1;
+                counterLoop < data.length;
+                counterLoop++
+              ) {
+                var nameLineData = data[counterLoop].split(" ");
+
+                if (nameLineData[1] === "BIRT") {
+                  childBirthday = data[counterLoop + 1]
+                    .split(" ")
+                    .slice(2, data[counterLoop + 1].length)
+                    .join(" ");
+                  break;
+                }
+              }
+            }
+          }
+
+          var childDate = new Date(Date.parse(childBirthday));
+
+          children.push(childDate);
+        }
+      }
+
+      for (childCount = 0; childCount < children.length; childCount++) {
+        for (
+          compareChild = childCount + 1;
+          compareChild < children.length;
+          compareChild++
+        ) {
+          if (
+            Math.floor(
+              (children[childCount] - children[compareChild]) / 86400000
+            ) <= 2 ||
+            Math.floor(
+              (children[childCount] - children[compareChild]) / 86400000 / 12
+            ) <= 8
+          ) {
+            errors.push(
+              `ERROR: FAMILY: US13: ${FID}: Birth of children should be more than 8 months apart or less than 2 days apart.`
+            );
+            noError = false;
+          }
+        }
+      }
+    }
+  }
+  return noError;
+}
+US13(gedcomFileName);
+
+//US14 No more than five siblings should be born at the same time
+function US14(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (let line = 0; line < data.length; line++) {
+    var lineData = data[line].split(" ");
+    if (lineData[2] === "FAM") {
+      var FID = lineData[1].replace(/[@]/g, "");
+
+      var children = [];
+
+      for (let counter = line + 1; counter < data.length; counter++) {
+        var familyLineData = data[counter].split(" ");
+        if (familyLineData[2] === "FAM") {
+          break;
+        }
+
+        if (familyLineData[1] === "CHIL") {
+          var child = familyLineData[2];
+
+          for (let lineLoop = 0; lineLoop < data.length; lineLoop++) {
+            var lineData = data[lineLoop].split(" ");
+
+            if (lineData[1] === child) {
+              for (
+                let counterLoop = lineLoop + 1;
+                counterLoop < data.length;
+                counterLoop++
+              ) {
+                var nameLineData = data[counterLoop].split(" ");
+
+                if (nameLineData[1] === "BIRT") {
+                  childBirthday = data[counterLoop + 1]
+                    .split(" ")
+                    .slice(2, data[counterLoop + 1].length)
+                    .join(" ");
+                  break;
+                }
+              }
+            }
+          }
+
+          var childDate = new Date(Date.parse(childBirthday));
+
+          children.push(childDate);
+        }
+      }
+
+      for (childCount = 0; childCount < children.length; childCount++) {
+        var birthCount = 0;
+        birthCount++;
+        for (
+          compareChild = childCount + 1;
+          compareChild < children.length;
+          compareChild++
+        ) {
+          if (
+            Math.floor(
+              (children[childCount] - children[compareChild]) / 86400000
+            ) <= 2
+          ) {
+            birthCount++;
+          }
+        }
+        if (birthCount > 5) {
+          errors.push(
+            `ERROR: FAMILY: US14: ${FID}: No more than five siblings can be born at the same time.`
+          );
+          noError = false;
+        }
+      }
+    }
+  }
+  return noError;
+}
+US14(gedcomFileName);
+
 //US25 Unique first names in families
 function US25(fileName) {
   var data = parseGedcom(fileName);
@@ -569,6 +795,66 @@ function US27(fileName) {
 }
 US27(gedcomFileName);
 
+//US35 List recent births
+function US35(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (var people = 0; people < individualData.length; people++) {
+    if (individualData[people].Alive === true) {
+      if (individualData[people].Birthday) {
+        var curDate = new Date();
+
+        var birthday = new Date(individualData[people].Birthday);
+
+        if (
+          (curDate.getTime() - birthday.getTime()) / (1000 * 3600 * 24) <= 30 &&
+          (curDate.getTime() - birthday.getTime()) / (1000 * 3600 * 24) >= 0
+        ) {
+          errors.push(
+            `LIST: INDIVIDUAL: US35: ${individualData[people].Name} (${individualData[people].ID}) was born within 30 days of current date`
+          );
+          noError = false;
+        }
+      }
+    }
+  }
+  return noError;
+}
+US35(gedcomFileName);
+
+//US36 List recent deaths
+function US36(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (var people = 0; people < individualData.length; people++) {
+    if (individualData[people].Alive === false) {
+      if (individualData[people].Death) {
+        var curDate = new Date();
+
+        var death = new Date(individualData[people].Death);
+
+        if (
+          (curDate.getTime() - death.getTime()) / (1000 * 3600 * 24) <= 30 &&
+          (curDate.getTime() - death.getTime()) / (1000 * 3600 * 24) >= 0
+        ) {
+          errors.push(
+            `LIST: INDIVIDUAL: US36: ${individualData[people].Name} (${individualData[people].ID}) died within 30 days of current date`
+          );
+          noError = false;
+        }
+      }
+    }
+  }
+  return noError;
+}
+US36(gedcomFileName);
+
 var data = parseGedcom(gedcomFileName);
 var individualData = data.individualData;
 var familyData = data.familyData;
@@ -585,8 +871,14 @@ for (error in errors) {
 module.exports = {
   parseGedcom,
   US01,
+  US03,
+  US04,
   US11,
   US12,
+  US13,
+  US14,
   US25,
   US27,
+  US35,
+  US36,
 };
