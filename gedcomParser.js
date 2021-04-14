@@ -1102,6 +1102,56 @@ function countOccurenceSpousesMarriageDate(spousesNameMarriageDateList, spousesN
   }
   return count;
 }
+//US21	Correct gender for role	Husband in family should be male and wife in family should be female
+for ( let familyDataElement = 0; familyDataElement < familyData.length; familyDataElement++){
+
+  for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+    if (familyData[familyDataElement].HusbandId == individualData[indiDataElement].ID){         //checking if husband is male 
+        if(individualData[indiDataElement].Gender != 'M')
+          errors.push(`ERROR: FAMILY: US 21: Husband in family ${familyData[familyDataElement].ID} is not a male`);  
+    }
+    if (familyData[familyDataElement].WifeId == individualData[indiDataElement].ID){         //checking if wife is female 
+      if(individualData[indiDataElement].Gender != 'F')
+        errors.push(`ERROR: FAMILY: US 21: Wife in family ${familyData[familyDataElement].ID} is not a female`);  
+      }
+  }
+  
+}
+
+//US22	Unique IDs	All individual IDs should be unique and all family IDs should be unique
+let individualIDsArray = [];
+for (let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+  individualIDsArray.push(individualData[indiDataElement].ID);                                //storing all Individual IDs in an array
+}  
+
+for(let index = 0; index < individualIDsArray.length; index++){
+  if(countOccurence(individualIDsArray, individualIDsArray[index]) != 1){         //if true that means ID is repeated and not unique
+    errors.push(`ERROR: INDIVIDUAL: US22: ID ${individualIDsArray[index]} is repeated. Individual ID must be unique`);
+  }
+}
+
+function countOccurence(idArray, id){   //counts the number of times an id is repeated in the array
+  let count = 0;
+  for (let index = 0; index < idArray.length; index++){
+      if (id == idArray[index]){
+        count++;
+      }
+  }
+  return count;
+}
+
+let familyIDsArray = [];
+for (let famDataElement = 0; famDataElement < familyData.length; famDataElement++){
+  familyIDsArray.push(familyData[famDataElement].ID);                                //storing all family IDs in an array
+}  
+
+for(let index = 0; index < familyIDsArray.length; index++){
+  if(countOccurence(familyIDsArray, familyIDsArray[index]) != 1){         //if true that means ID is repeated and not unique
+    errors.push(`ERROR: FAMILY: US22: ID ${familyIDsArray[index]} is repeated. Family ID must be unique`);
+  }
+}
+
+
 
 //Printing errors in GEDCOM file
 for (error in errors) {
