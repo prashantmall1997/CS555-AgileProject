@@ -1,6 +1,6 @@
-//var gedcomFileName = "gedcomTestDataBase";
+var gedcomFileName = "gedcomTestDataBase";
 //var gedcomFileName = "gedcomTestData_US25";
-var gedcomFileName = "gedcomTestData_US27";
+//var gedcomFileName = "gedcomTestData_US27";
 
 function parseGedcom(fileName) {
   var fs = require("fs");
@@ -162,7 +162,7 @@ function parseGedcom(fileName) {
     }
   }
 
-  return { individualData, familyData, noError };
+  return { individualData, familyData };
 }
 parseGedcom(gedcomFileName);
 
@@ -256,6 +256,37 @@ function US01(fileName) {
   return noError;
 }
 US01(gedcomFileName);
+
+//US02 - Dates before current date
+function US02(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    if (!dateChecker(husbandBirthDate, familyData.Married)) {
+      errors.push(
+        `ERROR: FAMILY: ${familyData.ID}: US02: Husband's birth date ${husbandBirthDate} is after marriage date ${familyData.Married}.`
+      );
+      noError = false;
+    }
+    if (!dateChecker(wifeBirthDate, familyData.Married)) {
+      errors.push(
+        `ERROR: FAMILY: ${familyData.ID}: US02: Wife's birth date ${wifeBirthDate} is after marriage date ${familyData.Married}.`
+      );
+      noError = false;
+    }
+  }
+
+  return noError;
+}
+US02(gedcomFileName);
+
 
 //US03 - Birth before death
 function US03(fileName) {

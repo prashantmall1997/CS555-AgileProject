@@ -1,5 +1,4 @@
 const {
-  parseGedcom,
   US01,
   US03,
   US04,
@@ -25,12 +24,12 @@ const {
   US36,
 } = require("./gedcomParser");
 
-test("Testing Base Case", () => {
-  expect(parseGedcom("gedcomTestDataBase").noError).toBe(true);
-});
-
 test("Test US01", () => {
   expect(US01("gedcomTestData_US01")).toBe(false);
+});
+
+test("Test US02", () => {
+  expect(US02("gedcomTestData_US02")).toBe(false);
 });
 
 test("Test US03", () => {
@@ -78,7 +77,7 @@ test("Test US13", () => {
 });
 
 test("Test US14", () => {
-  expect(US14("")).toBe(false);
+  expect(US14("gedcomTestData_US14")).toBe(false);
 });
 
 test("Test US15", () => {
@@ -114,9 +113,9 @@ test("Test US27", () => {
 });
 
 test("Test US35", () => {
-  expect(US35("")).toBe(false);
+  expect(US35("gedcomTestData_US35")).toBe(false);
 });
 
 test("Test US36", () => {
-  expect(US36("")).toBe(false);
+  expect(US36("gedcomTestData_US36")).toBe(false);
 });
