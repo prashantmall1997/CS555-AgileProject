@@ -1,4 +1,6 @@
 var gedcomFileName = "gedcomTestDataBase";
+//var gedcomFileName = "gedcomTestData_US25";
+//var gedcomFileName = "gedcomTestData_US27";
 
 function parseGedcom(fileName) {
   var fs = require("fs");
@@ -160,7 +162,7 @@ function parseGedcom(fileName) {
     }
   }
 
-  return { individualData, familyData, noError };
+  return { individualData, familyData };
 }
 parseGedcom(gedcomFileName);
 
@@ -254,6 +256,37 @@ function US01(fileName) {
   return noError;
 }
 US01(gedcomFileName);
+
+//US02 - Dates before current date
+function US02(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    if (!dateChecker(husbandBirthDate, familyData.Married)) {
+      errors.push(
+        `ERROR: FAMILY: ${familyData.ID}: US02: Husband's birth date ${husbandBirthDate} is after marriage date ${familyData.Married}.`
+      );
+      noError = false;
+    }
+    if (!dateChecker(wifeBirthDate, familyData.Married)) {
+      errors.push(
+        `ERROR: FAMILY: ${familyData.ID}: US02: Wife's birth date ${wifeBirthDate} is after marriage date ${familyData.Married}.`
+      );
+      noError = false;
+    }
+  }
+
+  return noError;
+}
+US02(gedcomFileName);
+
 
 //US03 - Birth before death
 function US03(fileName) {
@@ -434,6 +467,259 @@ function US06(fileName) {
   return noError;
 }
 US06(gedcomFileName);
+
+//US07 - Less then 150 years old - Death should be less than 150 years after birth for dead people, and current date should be less than 150 years after birth for all living people
+function US07(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    if (individualData[indiDataElement].Alive == true) {
+      let age = calculateAge(individualData[indiDataElement].Birthday);
+
+      if (age > 150) {
+        errors.push(
+          `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old - Birth ${individualData[indiDataElement].Birthday}`
+        );
+        noError = false;
+      }
+    } else {
+      let age = calculateAge(
+        individualData[indiDataElement].Birthday,
+        individualData[indiDataElement].Death
+      );
+
+      if (age > 150) {
+        errors.push(
+          `ERROR: INDIVIDUAL: US07: ${individualData[indiDataElement].ID}: More than 150 years old at death - Birth ${individualData[indiDataElement].Birthday} : Death ${individualData[indiDataElement].Death}`
+        );
+        noError = false;
+      }
+    }
+  }
+  return noError;
+}
+US07(gedcomFileName);
+
+//US08	Birth before marriage of parents	Children should be born after marriage of parents (and not more than 9 months after their divorce)
+function US08(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    if (familyData[familyDataElement].Children.length != 0) {
+      for (
+        childrenDataElement = 0;
+        childrenDataElement < familyData[familyDataElement].Children.length;
+        childrenDataElement++
+      ) {
+        for (
+          indiDataElement = 0;
+          indiDataElement < individualData.length;
+          indiDataElement++
+        ) {
+          if (
+            familyData[familyDataElement].Children[childrenDataElement] ==
+            individualData[indiDataElement].ID
+          ) {
+            if (
+              dateChecker(
+                individualData[indiDataElement].Birthday,
+                familyData[familyDataElement].Married
+              )
+            ) {
+              errors.push(
+                `ANAMOLY: FAMILY: US08: ${familyData[familyDataElement].ID} Child ${individualData[indiDataElement].ID} born ${individualData[indiDataElement].Birthday} before marriage on ${familyData[familyDataElement].Married}`
+              );
+              noError = false;
+            } else if (familyData[familyDataElement].Divorced != "NA") {
+              let difference = calculateAge(
+                familyData[familyDataElement].Divorced,
+                individualData[indiDataElement].Birthday
+              );
+
+              if (difference >= 0.75) {
+                errors.push(
+                  `ANAMOLY: FAMILY: US08: ${familyData[familyDataElement].ID} Child ${individualData[indiDataElement].ID} born ${individualData[indiDataElement].Birthday} after divorce on ${familyData[familyDataElement].Divorced}`
+                );
+                noError = false;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return noError;
+}
+US08(gedcomFileName);
+
+//US09	Birth before death of parents	Child should be born before death of mother and before 9 months after death of father
+function US09(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    let familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    for (
+      let indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        familyData[familyDataElement].HusbandId ==
+          individualData[indiDataElement].ID &&
+        !individualData[indiDataElement].Alive
+      ) {
+        //finding husbandid and checking further if not alive
+        husbandDeathDate = new Date(
+          Date.parse(individualData[indiDataElement].Death)
+        );
+        fatherDeathDate = individualData[indiDataElement].Death;
+        for (
+          let childIndex = 0;
+          childIndex < familyData[familyDataElement].Children.length;
+          childIndex++
+        ) {
+          //iterating through each element in children array
+
+          for (
+            let indiDataElement = 0;
+            indiDataElement < individualData.length;
+            indiDataElement++
+          ) {
+            if (
+              individualData[indiDataElement].ID ==
+              familyData[familyDataElement].Children[childIndex]
+            ) {
+              childBirthDay = new Date(
+                Date.parse(individualData[indiDataElement].Birthday)
+              );
+              difference = calculateAge(childBirthDay, husbandDeathDate); //calculating difference between child birthdate and father's death date
+
+              if (difference < 0.75) {
+                //child should be born before 9 months from death of father
+                errors.push(
+                  `ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of father (${familyData[familyDataElement].HusbandId}) on ${fatherDeathDate} `
+                );
+                noError = false;
+              }
+            }
+          }
+        }
+      }
+      if (
+        familyData[familyDataElement].WifeId ==
+          individualData[indiDataElement].ID &&
+        !individualData[indiDataElement].Alive
+      ) {
+        wifeDeathDate = new Date(
+          Date.parse(individualData[indiDataElement].Death)
+        );
+        motherDeathDate = individualData[indiDataElement].Death;
+        for (
+          let childIndex = 0;
+          childIndex < familyData[familyDataElement].Children.length;
+          childIndex++
+        ) {
+          //iterating through each element in children array
+
+          for (
+            let indiDataElement = 0;
+            indiDataElement < individualData.length;
+            indiDataElement++
+          ) {
+            if (
+              individualData[indiDataElement].ID ==
+              familyData[familyDataElement].Children[childIndex]
+            ) {
+              childBirthDay = new Date(
+                Date.parse(individualData[indiDataElement].Birthday)
+              );
+
+              if (!dateChecker(childBirthDay, wifeDeathDate)) {
+                //if mother's death data is before child's birthdate condition is true and throws error
+                errors.push(
+                  `ERROR: INDIVIDUAL: US09: ${individualData[indiDataElement].ID}: Born on ${individualData[indiDataElement].Birthday} after death of mother (${familyData[familyDataElement].WifeId}) on ${motherDeathDate}`
+                );
+                noError = false;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return noError;
+}
+US09(gedcomFileName);
+
+//US10	-Marriage after 14	-Marriage should be at least 14 years after birth of both spouses (parents must be at least 14 years old)
+function US10(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    let familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    let marriageDate = new Date(
+      Date.parse(familyData[familyDataElement].Married)
+    );
+    let husbandId = familyData[familyDataElement].HusbandId;
+    let wifeId = familyData[familyDataElement].WifeId;
+    //console.log(marriageDate);
+    for (
+      let indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (individualData[indiDataElement].ID == husbandId) {
+        husbandBirthday = individualData[indiDataElement].Birthday;
+      }
+      if (individualData[indiDataElement].ID == wifeId) {
+        wifeBirthday = individualData[indiDataElement].Birthday;
+      }
+    }
+    let diffHusband = calculateAge(marriageDate, husbandBirthday); //calculates the difference between the marriage date and husband birth date
+    let diffWife = calculateAge(marriageDate, wifeBirthday); //calculates the difference between the marriage date and wife birth date
+
+    if (diffHusband < 14) {
+      errors.push(
+        `ERROR: INDIVIDUAL: US10: ${husbandId}: married before the age of 14`
+      );
+      noError = false;
+    }
+    if (diffWife < 14) {
+      errors.push(
+        `ERROR: INDIVIDUAL: US10: ${wifeId}: married before the age of 14`
+      );
+      noError = false;
+    }
+  }
+  return noError;
+}
+US10(gedcomFileName);
 
 //US11 Marriage should not occur during marriage to another spouse
 function US11(fileName) {
@@ -904,124 +1190,6 @@ function US16(fileName) {
 }
 US16(gedcomFileName);
 
-//US21	Correct gender for role	Husband in family should be male and wife in family should be female
-function US21(fileName) {
-  var data = parseGedcom(fileName);
-  var individualData = data.individualData;
-  var familyData = data.familyData;
-  var noError = true;
-
-  for (
-    let familyDataElement = 0;
-    familyDataElement < familyData.length;
-    familyDataElement++
-  ) {
-    for (
-      let indiDataElement = 0;
-      indiDataElement < individualData.length;
-      indiDataElement++
-    ) {
-      if (
-        familyData[familyDataElement].HusbandId ==
-        individualData[indiDataElement].ID
-      ) {
-        //checking if husband is male
-        if (individualData[indiDataElement].Gender != "M")
-          errors.push(
-            `ERROR: FAMILY: US 21: Husband in family ${familyData[familyDataElement].ID} is not a male`
-          );
-      }
-      if (
-        familyData[familyDataElement].WifeId ==
-        individualData[indiDataElement].ID
-      ) {
-        //checking if wife is female
-        if (individualData[indiDataElement].Gender != "F")
-          errors.push(
-            `ERROR: FAMILY: US 21: Wife in family ${familyData[familyDataElement].ID} is not a female`
-          );
-        noError = false;
-      }
-    }
-  }
-  return noError;
-}
-US21(gedcomFileName);
-
-function countOccurence(idArray, id) {
-  //counts the number of times an id is repeated in the array
-  let count = 0;
-  for (let index = 0; index < idArray.length; index++) {
-    if (id == idArray[index]) {
-      count++;
-    }
-  }
-  return count;
-}
-
-//US22	Unique IDs	All individual IDs should be unique and all family IDs should be unique
-function US22(fileName) {
-  var data = parseGedcom(fileName);
-  var individualData = data.individualData;
-  var familyData = data.familyData;
-  var noError = true;
-
-  let individualIDsArray = [];
-  for (
-    let indiDataElement = 0;
-    indiDataElement < individualData.length;
-    indiDataElement++
-  ) {
-    individualIDsArray.push(individualData[indiDataElement].ID); //storing all Individual IDs in an array
-  }
-
-  for (let index = 0; index < individualIDsArray.length; index++) {
-    if (countOccurence(individualIDsArray, individualIDsArray[index]) != 1) {
-      //if true that means ID is repeated and not unique
-      errors.push(
-        `ERROR: INDIVIDUAL: US22: ID ${individualIDsArray[index]} is repeated. Individual ID must be unique`
-      );
-      noError = false;
-    }
-  }
-
-  let familyIDsArray = [];
-  for (
-    let famDataElement = 0;
-    famDataElement < familyData.length;
-    famDataElement++
-  ) {
-    familyIDsArray.push(familyData[famDataElement].ID); //storing all family IDs in an array
-  }
-
-  for (let index = 0; index < familyIDsArray.length; index++) {
-    if (countOccurence(familyIDsArray, familyIDsArray[index]) != 1) {
-      //if true that means ID is repeated and not unique
-      errors.push(
-        `ERROR: FAMILY: US22: ID ${familyIDsArray[index]} is repeated. Family ID must be unique`
-      );
-      noError = false;
-    }
-  }
-  return noError;
-}
-US22(gedcomFileName);
-
-function countOccurenceObject(nameBirthDayList, nameBirthdayObject) {
-  let count = 0;
-  for (let index = 0; index < nameBirthDayList.length; index++) {
-    if (
-      nameBirthdayObject.name.toLowerCase() ===
-      nameBirthDayList[index].name.toLowerCase()
-    ) {
-      if (nameBirthdayObject.birthday === nameBirthDayList[index].birthday) {
-        count++;
-      }
-    }
-  }
-  return count;
-}
-
 //US25 Unique first names in families
 function US25(fileName) {
   var data = parseGedcom(fileName);
@@ -1153,6 +1321,218 @@ function US36(fileName) {
 }
 US36(gedcomFileName);
 
+//US21	Correct gender for role	Husband in family should be male and wife in family should be female
+function US21(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (
+    let familyDataElement = 0;
+    familyDataElement < familyData.length;
+    familyDataElement++
+  ) {
+    for (
+      let indiDataElement = 0;
+      indiDataElement < individualData.length;
+      indiDataElement++
+    ) {
+      if (
+        familyData[familyDataElement].HusbandId ==
+        individualData[indiDataElement].ID
+      ) {
+        //checking if husband is male
+        if (individualData[indiDataElement].Gender != "M")
+          errors.push(
+            `ERROR: FAMILY: US 21: Husband in family ${familyData[familyDataElement].ID} is not a male`
+          );
+      }
+      if (
+        familyData[familyDataElement].WifeId ==
+        individualData[indiDataElement].ID
+      ) {
+        //checking if wife is female
+        if (individualData[indiDataElement].Gender != "F")
+          errors.push(
+            `ERROR: FAMILY: US 21: Wife in family ${familyData[familyDataElement].ID} is not a female`
+          );
+        noError = false;
+      }
+    }
+  }
+  return noError;
+}
+US21(gedcomFileName);
+
+function countOccurence(idArray, id) {
+  //counts the number of times an id is repeated in the array
+  let count = 0;
+  for (let index = 0; index < idArray.length; index++) {
+    if (id == idArray[index]) {
+      count++;
+    }
+  }
+  return count;
+}
+
+//US22	Unique IDs	All individual IDs should be unique and all family IDs should be unique
+function US22(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  let individualIDsArray = [];
+  for (
+    let indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    individualIDsArray.push(individualData[indiDataElement].ID); //storing all Individual IDs in an array
+  }
+
+  for (let index = 0; index < individualIDsArray.length; index++) {
+    if (countOccurence(individualIDsArray, individualIDsArray[index]) != 1) {
+      //if true that means ID is repeated and not unique
+      errors.push(
+        `ERROR: INDIVIDUAL: US22: ID ${individualIDsArray[index]} is repeated. Individual ID must be unique`
+      );
+      noError = false;
+    }
+  }
+
+  let familyIDsArray = [];
+  for (
+    let famDataElement = 0;
+    famDataElement < familyData.length;
+    famDataElement++
+  ) {
+    familyIDsArray.push(familyData[famDataElement].ID); //storing all family IDs in an array
+  }
+
+  for (let index = 0; index < familyIDsArray.length; index++) {
+    if (countOccurence(familyIDsArray, familyIDsArray[index]) != 1) {
+      //if true that means ID is repeated and not unique
+      errors.push(
+        `ERROR: FAMILY: US22: ID ${familyIDsArray[index]} is repeated. Family ID must be unique`
+      );
+      noError = false;
+    }
+  }
+  return noError;
+}
+US22(gedcomFileName);
+
+function countOccurenceObject(nameBirthDayList, nameBirthdayObject) {
+  let count = 0;
+  for (let index = 0; index < nameBirthDayList.length; index++) {
+    if (
+      nameBirthdayObject.name.toLowerCase() ===
+      nameBirthDayList[index].name.toLowerCase()
+    ) {
+      if (nameBirthdayObject.birthday === nameBirthDayList[index].birthday) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+//US23	Unique name and birth date	No more than one individual with the same name and birth date should appear in a GEDCOM file
+function US23(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  // var familyData = data.familyData;
+  var noError = true;
+
+  let nameBirthDayList = [];
+
+  for (
+    let indiDataElement = 0;
+    indiDataElement < individualData.length;
+    indiDataElement++
+  ) {
+    nameBirthDayList.push({
+      id: individualData[indiDataElement].ID, //storing all Individual name and birthdate in an array
+      name: individualData[indiDataElement].Name,
+      birthday: individualData[indiDataElement].Birthday,
+    });
+  }
+
+  for (let index = 0; index < nameBirthDayList.length; index++) {
+    if (countOccurenceObject(nameBirthDayList, nameBirthDayList[index]) != 1) {
+      errors.push(
+        `ERROR: INDIVIDUAL: US23 individual with ID ${nameBirthDayList[index].id} name: ${nameBirthDayList[index].name} birth date: ${nameBirthDayList[index].birthday} is repeated. Individual must have unique name and birthday.`
+      );
+      noError = false;
+    }
+  }
+  return noError;
+}
+US23(gedcomFileName);
+
+function countOccurenceSpousesMarriageDate(
+  spousesNameMarriageDateList,
+  spousesNameMarriageDateObject
+) {
+  let count = 0;
+  for (let index = 0; index < spousesNameMarriageDateList.length; index++) {
+    if (
+      spousesNameMarriageDateObject.husbandName.toLowerCase() ===
+        spousesNameMarriageDateList[index].husbandName.toLowerCase() ||
+      spousesNameMarriageDateObject.wifeName.toLowerCase() ===
+        spousesNameMarriageDateList[index].wifeName.toLowerCase()
+    ) {
+      if (
+        spousesNameMarriageDateObject.marriageDate ===
+        spousesNameMarriageDateList[index].marriageDate
+      ) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+//US24	Unique families by spouses	No more than one family with the same spouses by name and the same marriage date should appear in a GEDCOM file
+function US24(fileName) {
+  var data = parseGedcom(fileName);
+  //var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  let spousesNameMarriageDateList = [];
+  for (
+    let famDataElement = 0;
+    famDataElement < familyData.length;
+    famDataElement++
+  ) {
+    spousesNameMarriageDateList.push({
+      ID: familyData[famDataElement].ID, //storing all family spouses name and marriage dates in an array
+      husbandName: familyData[famDataElement].HusbandName,
+      wifeName: familyData[famDataElement].WifeName,
+      marriageDate: familyData[famDataElement].Married,
+    });
+  }
+  // console.log(spousesNameMarriageDateList);
+  for (let index = 0; index < spousesNameMarriageDateList.length; index++) {
+    if (
+      countOccurenceSpousesMarriageDate(
+        spousesNameMarriageDateList,
+        spousesNameMarriageDateList[index]
+      ) != 1
+    ) {
+      errors.push(
+        `ERROR: FAMILY: US24: Family with ID ${spousesNameMarriageDateList[index].ID} does not have unique names of spouses and marriage date`
+      );
+      noError = false;
+    }
+  }
+  return noError;
+}
+US24(gedcomFileName);
+
 var data = parseGedcom(gedcomFileName);
 var individualData = data.individualData;
 var familyData = data.familyData;
@@ -1173,6 +1553,10 @@ module.exports = {
   US04,
   US05,
   US06,
+  US07,
+  US08,
+  US09,
+  US10,
   US11,
   US12,
   US13,
@@ -1181,6 +1565,8 @@ module.exports = {
   US16,
   US21,
   US22,
+  US23,
+  US24,
   US25,
   US27,
   US35,
