@@ -5,6 +5,10 @@ const {
   US04,
   US05,
   US06,
+  US07,
+  US08,
+  US09,
+  US10,
   US11,
   US12,
   US13,
@@ -13,15 +17,13 @@ const {
   US16,
   US21,
   US22,
+  US23,
+  US24,
   US25,
   US27,
   US35,
   US36,
 } = require("./gedcomParser");
-
-test("Testing Base Case", () => {
-  expect(parseGedcom("gedcomTestDataBase").noError).toBe(true);
-});
 
 test("Testing Base Case", () => {
   expect(parseGedcom("gedcomTestDataBase").noError).toBe(true);
@@ -45,6 +47,22 @@ test("Test US05", () => {
 
 test("Test US06", () => {
   expect(US06("gedcomTestData_US06")).toBe(false);
+});
+
+test("Test US07", () => {
+  expect(US07("gedcomTestData_US07")).toBe(false);
+});
+
+test("Test US08", () => {
+  expect(US08("gedcomTestData_US08")).toBe(false);
+});
+
+test("Test US09", () => {
+  expect(US09("gedcomTestData_US09")).toBe(false);
+});
+
+test("Test US10", () => {
+  expect(US10("gedcomTestData_US10")).toBe(false);
 });
 
 test("Test US11", () => {
@@ -78,12 +96,21 @@ test("Test US21", () => {
 test("Test US22", () => {
   expect(US22("gedcomTestData_US22")).toBe(false);
 });
+
+test("Test US23", () => {
+  expect(US23("gedcomTestData_US23")).toBe(false);
+});
+
+test("Test US24", () => {
+  expect(US24("gedcomTestData_US24")).toBe(false);
+});
+
 test("Test US25", () => {
-  expect(US25("")).toBe(false);
+  expect(US25("gedcomTestData_US25")).toBe(false);
 });
 
 test("Test US27", () => {
-  expect(US27("")).toBe(false);
+  expect(US27("gedcomTestData_US27")).toBe(false);
 });
 
 test("Test US35", () => {
