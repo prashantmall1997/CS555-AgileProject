@@ -24,6 +24,8 @@ const {
   US36,
   US39,
   US42,
+  US33,
+  US38
 } = require("./gedcomParser");
 
 test("Test US01", () => {
@@ -128,4 +130,12 @@ test("Test US39", () => {
 
 test("Test US42", () => {
   expect(US42("gedcomTestData_US42")).toBe(false);
+});
+
+test("Test US33", () => {
+  expect(US33("gedcomTestData_US33")).toBe(false);
+});
+
+test("Test US38", () => {
+  expect(US38("gedcomTestData_US38")).toBe(false);
 });
