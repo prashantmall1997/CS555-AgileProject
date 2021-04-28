@@ -1,5 +1,7 @@
+//var gedcomFileName = "gedcomTestData_US38";
+//var gedcomFileName = "gedcomTestData_US25";
+//var gedcomFileName = "gedcomTestData_US27";
 var gedcomFileName = "gedcomTestDataBase";
-// var gedcomFileName = "gedcomTestData_US42";
 
 function parseGedcom(fileName) {
   var fs = require("fs");
@@ -285,6 +287,7 @@ function US02(fileName) {
   return noError;
 }
 US02(gedcomFileName);
+
 
 //US03 - Birth before death
 function US03(fileName) {
@@ -1531,208 +1534,45 @@ function US24(fileName) {
 }
 US24(gedcomFileName);
 
-//US39 List all living couples in a GEDCOM file whose marriage anniversaries occur in the next 30 days
-function US39(fileName) {
-  var data = parseGedcom(fileName);
-  var individualData = data.individualData;
-  var familyData = data.familyData;
-  var noError = true;
-
-  for (var family = 0; family < familyData.length; family++) {
-    var count = 0;
-    if (familyData[family].Married) {
-      var curDate = new Date();
-      var marriage = new Date(familyData[family].Married);
-      marriage.setFullYear(curDate.getFullYear());
-      if (
-        (curDate.getTime() - marriage.getTime()) / (1000 * 3600 * 24) >= -30 &&
-        (curDate.getTime() - marriage.getTime()) / (1000 * 3600 * 24) <= 0
-      ) {
-        for (var people = 0; people < individualData.length; people++) {
-          if (
-            individualData[people].ID === familyData[family].HusbandId ||
-            individualData[people].ID === familyData[family].WifeId
-          ) {
-            if (individualData[people].Alive) {
-              count++;
-            }
-          }
-        }
-        if (count === 2) {
-          errors.push(
-            `LIST: FAMILY: US39: ${familyData[family].HusbandId} & ${familyData[family].WifeId} of (${familyData[family].ID}) have marriage anniversaries within 30 days of current date`
-          );
-
-          noError = false;
-        }
-      }
-    }
-  }
-  return noError;
-}
-US39(gedcomFileName);
-
-//US42 All dates should be legitimate dates for the months specified (e.g., 2/30/2015 is not legitimate)
-function US42(fileName) {
-  var data = parseGedcom(fileName);
-  var individualData = data.individualData;
-  var familyData = data.familyData;
-  var noError = true;
-
-  function isValidDate(year, month, day) {
-    console.log(year, month, day);
-    const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    var d = new Date(`${year} ${month} ${day}`);
-    if (
-      d.getFullYear() == year &&
-      monthNames[d.getMonth()].toUpperCase() == month.toUpperCase() &&
-      d.getDate() == day
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  for (var family = 0; family < familyData.length; family++) {
-    if (familyData[family].Married) {
-      var marriage = familyData[family].Married.split(" ");
-      if (!isValidDate(marriage[2], marriage[1], marriage[0])) {
-        errors.push(
-          `LIST: FAMILY: US42: (${familyData[family].ID}) marriage date is invalid`
-        );
-
-        noError = false;
-      }
-    }
-
-    if (familyData[family].Divorced && familyData[family].Divorced != "NA") {
-      var divorce = familyData[family].Divorced.split(" ");
-      if (!isValidDate(divorce[2], divorce[1], divorce[0])) {
-        errors.push(
-          `LIST: FAMILY: US42: (${familyData[family].ID}) divorce date is invalid`
-        );
-
-        noError = false;
-      }
-    }
-  }
-
-  for (var people = 0; people < individualData.length; people++) {
-    if (individualData[people].Birthday) {
-      var birthday = individualData[people].Birthday.split(" ");
-      if (!isValidDate(birthday[2], birthday[1], birthday[0])) {
-        errors.push(
-          `LIST: INDIVIDUAL: US42: (${individualData[people].ID}) birth date is invalid`
-        );
-
-        noError = false;
-      }
-    }
-
-    if (individualData[people].Death && individualData[people].Death != "NA") {
-      var death = individualData[people].Death.split(" ");
-      if (!isValidDate(death[2], death[1], death[0])) {
-        errors.push(
-          `LIST: INDIVIDUAL: US42: (${individualData[people].ID}) death date is invalid`
-        );
-
-        noError = false;
-      }
-    }
-  }
-
-  return noError;
-}
-US42(gedcomFileName);
-
-//US33	List orphans	List all orphaned children (both parents dead and child < 18 years old) in a GEDCOM file
-function US33(fileName){
-  var data = parseGedcom(fileName);
-  var individualData = data.individualData;
-  var familyData = data.familyData;
-  var noError = true;
-  let temp = [];
-  for (let famDataElement = 0; famDataElement < familyData.length; famDataElement++){
-    for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-      if (familyData[famDataElement].HusbandId == individualData[indiDataElement].ID && individualData[indiDataElement].Alive == false)
-      {
-        for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-          if (familyData[famDataElement].WifeId ==  individualData[indiDataElement].ID && individualData[indiDataElement].Alive == false){
-              temp = familyData[famDataElement].Children;
-          }
-        }
-      }
-    }
-  }
-
-  //let orphansName = [];
-  for (let index = 0; index < temp.length; index++){
-    for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-        if (temp[index] == individualData[indiDataElement].ID && individualData[indiDataElement].Age < 18){
-          //orphansName.push(individualData[indiDataElement].Name);
-          errors.push(`LIST: INDIVIDUAL: US33: INDIVIDUAL with ID ${individualData[indiDataElement].ID} is an orphan.`);
-          noError = false;
-        }
-    }
-  }
-  // console.log("List of orphaned children (both parents dead and child < 18 years old):");
-  // console.log(orphansName);
-  return noError;
-}
-US33(gedcomFileName);
-
-//US38	List upcoming birthdays	List all living people in a GEDCOM file whose birthdays occur in the next 30 days
-function US38(fileName){
+//US30	List living married	List all living married people in a GEDCOM file
+function US30(fileName){
   var data = parseGedcom(fileName);
   var individualData = data.individualData;
   //var familyData = data.familyData;
   var noError = true;
-  let upcomingBirthDays = [];
+  //let livingMarried = [];
   for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
-    if (individualData[indiDataElement].Alive){
-        let dateObj = new Date();
-        let birthArray = individualData[indiDataElement].Birthday.split(" ");
-        let nextBirthDay = birthArray[0]+ " "+ birthArray[1]+ " "+dateObj.getFullYear();
-        let nextBirthDayParsed = new Date(Date.parse(nextBirthDay));
-        let currentDate = new Date().getTime();
-       // console.log(new Date(currentDate).toString());
-      //  console.log(individualData[indiDataElement].Name);
-      //   console.log(new Date(nextBirthDayParsed.getTime()).toString());
-      //   console.log(new Date(currentDate+2592000000).toString());
-        let nextdate = new Date(nextBirthDayParsed.getTime()).getDate();
-        let upcomingdate = new Date(currentDate+2592000000).getDate();
-        let nextmonth = new Date(nextBirthDayParsed.getTime()).getMonth();
-        let upcomingmonth = new Date(currentDate+2592000000).getMonth();
-        // console.log(nextdate);
-        // console.log(currentdate);
-        // console.log(nextmonth);
-        // console.log(currentmonth);
-       if (nextdate == upcomingdate && nextmonth == upcomingmonth){
-          //upcomingBirthDays.push(individualData[indiDataElement].Name);
-          noError = false;
-          errors.push(`LIST: INDIVIDUAL: US38: INIDIVIDUAL with ID ${individualData[indiDataElement].ID} has birthday in next 30 days.`)
-       }
+    if(individualData[indiDataElement].Spouse != 'NA' && individualData[indiDataElement].Alive){
+        //livingMarried.push(individualData[indiDataElement].Name);
+        errors.push(`LIST: INIDIVIDUAL: US30: INDIVIDUAL with ID ${individualData[indiDataElement].ID} is married.`);
+        noError = false;
     }
-  } 
-  // console.log("List of living people whose birthdays occur in the next 30 days:");
-  // console.log(upcomingBirthDays);
+  }
+  // console.log("List of all living married people:");
+  // console.log(livingMarried); 
+  return noError;
+} 
+US30(gedcomFileName);
+
+//US31	List living single	List all living people over 30 who have never been married in a GEDCOM file
+function US31(fileName){
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  //var familyData = data.familyData;
+  var noError = true;
+  //let livingSingle = [];
+  for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+    if(individualData[indiDataElement].Spouse == 'NA' && individualData[indiDataElement].Age >30){
+        //livingSingle.push(individualData[indiDataElement].Name);
+        errors.push(`LIST: INDIVIDUAL: US31: INDIVIDUAL with ID ${individualData[indiDataElement].ID} is over 30 and never been married.`);
+        noError = false;
+    }
+  }
+  // console.log("List of all living people over 30:");
+  // console.log(livingSingle);
   return noError;
 }
-US38(gedcomFileName);
+US31(gedcomFileName);
 
 var data = parseGedcom(gedcomFileName);
 var individualData = data.individualData;
@@ -1772,8 +1612,6 @@ module.exports = {
   US27,
   US35,
   US36,
-  US39,
-  US42,
-  US33,
-  US38
+  US30,
+  US31
 };
