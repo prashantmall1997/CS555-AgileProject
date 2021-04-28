@@ -1,6 +1,4 @@
 var gedcomFileName = "gedcomTestDataBase";
-//var gedcomFileName = "gedcomTestData_US25";
-//var gedcomFileName = "gedcomTestData_US27";
 
 function parseGedcom(fileName) {
   var fs = require("fs");
@@ -286,7 +284,6 @@ function US02(fileName) {
   return noError;
 }
 US02(gedcomFileName);
-
 
 //US03 - Birth before death
 function US03(fileName) {
@@ -1533,6 +1530,76 @@ function US24(fileName) {
 }
 US24(gedcomFileName);
 
+//US28 List siblings in families by decreasing age, i.e. oldest siblings first
+function US28(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  for (let family = 0; family < familyData.length; family++) {
+    var siblingsAge = [];
+    var sortedSiblingID = [];
+    for (
+      let siblings = 0;
+      siblings < familyData[family].Children.length;
+      siblings++
+    ) {
+      for (let person = 0; person < individualData.length; person++) {
+        if (
+          familyData[family].Children[siblings] === individualData[person].ID
+        ) {
+          let sibling = individualData[person].ID;
+          let SiblingAge = individualData[person].Age;
+
+          siblingsAge.push({ ID: sibling, Age: SiblingAge });
+        }
+      }
+    }
+    siblingsAge.sort((a, b) => (a.Age < b.Age ? 1 : -1));
+
+    for (let temp = 0; temp < siblingsAge.length; temp++) {
+      sortedSiblingID.push(siblingsAge[temp].ID);
+    }
+
+    var tempFamilyData = data.familyData;
+    if (tempFamilyData[family].children != sortedSiblingID) {
+      errors.push(
+        `ERROR: FAMILY: US28: Family with ID ${familyData[family].ID} - Siblings in families by decreasing age: ${sortedSiblingID}`
+      );
+      noError = false;
+    }
+  }
+
+  return noError;
+}
+US28(gedcomFileName);
+
+//US29 List all deceased individuals in a GEDCOM file
+function US29(fileName) {
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  var familyData = data.familyData;
+  var noError = true;
+
+  var deceased = [];
+  for (let person = 0; person < individualData.length; person++) {
+    if (individualData[person].Alive === false) {
+      deceased.push(individualData[person].ID);
+    }
+  }
+
+  if (deceased != []) {
+    errors.push(
+      `ERROR: INDIVIDUAL: US29: All deceased individuals are: ${deceased}`
+    );
+    noError = false;
+  }
+
+  return noError;
+}
+US29(gedcomFileName);
+
 var data = parseGedcom(gedcomFileName);
 var individualData = data.individualData;
 var familyData = data.familyData;
@@ -1571,4 +1638,6 @@ module.exports = {
   US27,
   US35,
   US36,
+  US28,
+  US29,
 };
