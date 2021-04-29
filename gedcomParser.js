@@ -1599,6 +1599,46 @@ function US29(fileName) {
   return noError;
 }
 US29(gedcomFileName);
+=======
+//US30	List living married	List all living married people in a GEDCOM file
+function US30(fileName){
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  //var familyData = data.familyData;
+  var noError = true;
+  //let livingMarried = [];
+  for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+    if(individualData[indiDataElement].Spouse != 'NA' && individualData[indiDataElement].Alive){
+        //livingMarried.push(individualData[indiDataElement].Name);
+        errors.push(`LIST: INIDIVIDUAL: US30: INDIVIDUAL with ID ${individualData[indiDataElement].ID} is married.`);
+        noError = false;
+    }
+  }
+  // console.log("List of all living married people:");
+  // console.log(livingMarried); 
+  return noError;
+} 
+US30(gedcomFileName);
+
+//US31	List living single	List all living people over 30 who have never been married in a GEDCOM file
+function US31(fileName){
+  var data = parseGedcom(fileName);
+  var individualData = data.individualData;
+  //var familyData = data.familyData;
+  var noError = true;
+  //let livingSingle = [];
+  for(let indiDataElement = 0; indiDataElement < individualData.length; indiDataElement++){
+    if(individualData[indiDataElement].Spouse == 'NA' && individualData[indiDataElement].Age >30){
+        //livingSingle.push(individualData[indiDataElement].Name);
+        errors.push(`LIST: INDIVIDUAL: US31: INDIVIDUAL with ID ${individualData[indiDataElement].ID} is over 30 and never been married.`);
+        noError = false;
+    }
+  }
+  // console.log("List of all living people over 30:");
+  // console.log(livingSingle);
+  return noError;
+}
+US31(gedcomFileName);
 
 var data = parseGedcom(gedcomFileName);
 var individualData = data.individualData;
@@ -1640,4 +1680,6 @@ module.exports = {
   US36,
   US28,
   US29,
+  US30,
+  US31
 };
